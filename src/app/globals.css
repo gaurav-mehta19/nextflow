@@ -1,0 +1,144 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* React Flow base styles */
+.react-flow__node {
+  @apply rounded-xl;
+  transition: transform 0.15s ease;
+}
+
+/* Selected nodes get a clear indigo ring + slight lift */
+.react-flow__node.selected .node-base {
+  box-shadow:
+    0 0 0 3px rgba(99, 102, 241, 0.45),
+    0 8px 20px rgba(99, 102, 241, 0.18);
+  border-color: rgb(99, 102, 241) !important;
+}
+.react-flow__node.selected {
+  transform: translateY(-2px);
+  z-index: 10;
+}
+
+/* Tiny "Selected" badge bottom-right of each selected card */
+.react-flow__node.selected .node-base::after {
+  content: 'Selected';
+  position: absolute;
+  bottom: -10px;
+  right: -6px;
+  background: rgb(99, 102, 241);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.35);
+  pointer-events: none;
+}
+
+/* Node base style — fixed width so long output text never stretches the card */
+.node-base {
+  @apply bg-white border border-gray-200 rounded-xl shadow-sm overflow-visible;
+  width: 340px;
+  max-width: 340px;
+  word-wrap: break-word;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.node-header {
+  @apply flex items-center gap-2 px-4 py-2.5 rounded-t-xl;
+}
+
+/* Running node — vibrant animated purple border + glow */
+@keyframes purple-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 0 rgba(168, 85, 247, 0.8),
+      0 0 28px 8px rgba(168, 85, 247, 0.55);
+    border-color: rgb(168, 85, 247);
+  }
+  50% {
+    box-shadow:
+      0 0 0 16px rgba(168, 85, 247, 0),
+      0 0 44px 18px rgba(168, 85, 247, 0.3);
+    border-color: rgb(124, 58, 237);
+  }
+}
+
+.node-running {
+  animation: purple-pulse 1.3s ease-in-out infinite;
+  border-color: rgb(168, 85, 247) !important;
+  border-width: 2px !important;
+  border-style: dashed !important;
+}
+
+.node-success {
+  border-color: rgb(34, 197, 94) !important;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.15), 0 4px 14px rgba(34, 197, 94, 0.1);
+}
+
+.node-failed {
+  border-color: rgb(239, 68, 68) !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15), 0 4px 14px rgba(239, 68, 68, 0.1);
+}
+
+/* Canvas toolbar button */
+.toolbar-btn {
+  @apply p-2 text-gray-500 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-40;
+}
+
+/* React Flow overrides */
+.react-flow__handle {
+  border: none !important;
+}
+
+.react-flow__controls {
+  @apply shadow-sm;
+}
+
+.react-flow__controls-button {
+  @apply !bg-white !border-gray-200 !text-gray-500 hover:!bg-gray-100 hover:!text-gray-800;
+}
+
+.react-flow__minimap {
+  @apply !rounded-lg overflow-hidden;
+}
+
+/* Clerk overrides */
+.cl-rootBox {
+  @apply w-full;
+}
+
+/* Scrollbar — wider + always visible so users can see they can scroll */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
+  background-clip: padding-box;
+}
+
+/* Always-visible scrollbar used inside node response areas */
+.node-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af transparent;
+  overflow-y: scroll;
+}
+.node-scroll::-webkit-scrollbar {
+  width: 6px;
+  display: block;
+}
+.node-scroll::-webkit-scrollbar-thumb {
+  @apply bg-gray-400 rounded-full;
+  border: none;
+}
