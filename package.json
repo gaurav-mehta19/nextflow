@@ -11,7 +11,9 @@
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
-    "trigger:dev": "npx trigger.dev@3.3.17 dev"
+    "trigger:dev": "npx trigger.dev@3.3.17 dev",
+    "trigger:deploy": "npx trigger.dev@3.3.17 deploy",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@clerk/nextjs": "^4.29.9",
