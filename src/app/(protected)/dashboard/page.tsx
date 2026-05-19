@@ -9,10 +9,23 @@ import { UserButton } from '@clerk/nextjs'
 import { Workflow, Upload, AlertTriangle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
+interface PreviewNode {
+  id: string
+  type?: string
+  position: { x: number; y: number }
+}
+
+interface PreviewEdge {
+  source: string
+  target: string
+}
+
 interface WorkflowSummary {
   id: string
   name: string
   updatedAt: string
+  nodes?: PreviewNode[]
+  edges?: PreviewEdge[]
   runs?: Array<{ status: string }>
 }
 
@@ -121,9 +134,16 @@ export default function DashboardPage() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 h-28 animate-pulse" />
+              <div key={i} className="bg-white border border-gray-200 rounded-2xl overflow-hidden animate-pulse">
+                <div className="h-44 bg-gray-100" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-gray-100 rounded w-3/4" />
+                  <div className="h-3 bg-gray-100 rounded w-1/2" />
+                  <div className="h-9 bg-gray-100 rounded-lg" />
+                </div>
+              </div>
             ))}
           </div>
         ) : workflows.length === 0 ? (
@@ -138,7 +158,7 @@ export default function DashboardPage() {
             <CreateWorkflowButton />
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {workflows.map((w) => (
               <WorkflowCard
                 key={w.id}
@@ -146,6 +166,8 @@ export default function DashboardPage() {
                 name={w.name}
                 updatedAt={w.updatedAt}
                 lastRunStatus={w.runs?.[0]?.status ?? null}
+                nodes={w.nodes ?? []}
+                edges={w.edges ?? []}
                 onDeleteRequest={(id, name) => setDeleteTarget({ id, name })}
                 onRename={(id, name) => { void handleRename(id, name) }}
               />

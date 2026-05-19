@@ -2,25 +2,44 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ExternalLink, Pencil, Trash2, Check, X, Download } from 'lucide-react'
+import { ArrowUpRight, Pencil, Trash2, Check, X, Download } from 'lucide-react'
 import { formatDistanceToNow } from '../../lib/utils/time'
 import { Badge } from '../ui/Badge'
+import { WorkflowPreview } from './WorkflowPreview'
+
+interface PreviewNode {
+  id: string
+  type?: string
+  position: { x: number; y: number }
+}
+
+interface PreviewEdge {
+  source: string
+  target: string
+}
 
 interface WorkflowCardProps {
   id: string
   name: string
   updatedAt: string
   lastRunStatus?: string | null
+  nodes?: PreviewNode[]
+  edges?: PreviewEdge[]
   onDeleteRequest: (id: string, name: string) => void
   onRename: (id: string, name: string) => void
 }
 
-export function WorkflowCard({ id, name, updatedAt, lastRunStatus, onDeleteRequest, onRename }: WorkflowCardProps) {
+export function WorkflowCard({
+  id, name, updatedAt, lastRunStatus, nodes = [], edges = [], onDeleteRequest, onRename,
+}: WorkflowCardProps) {
   const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [draftName, setDraftName] = useState(name)
 
-  const handleExport = () => {
+  const open = () => router.push(`/workflows/${id}/canvas`)
+
+  const handleExport = (e: React.MouseEvent) => {
+    e.stopPropagation()
     const link = document.createElement('a')
     link.href = `/api/workflows/${id}/export`
     link.download = `${name.replace(/[^a-z0-9]/gi, '_')}.json`
@@ -40,11 +59,28 @@ export function WorkflowCard({ id, name, updatedAt, lastRunStatus, onDeleteReque
     : 'default'
 
   return (
-    <div className="group bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm rounded-xl p-4 transition-all">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
+    <div className="group bg-white border border-gray-200 hover:border-indigo-300 hover:shadow-lg rounded-2xl overflow-hidden transition-all flex flex-col">
+      {/* Preview area — click to open */}
+      <div
+        onClick={open}
+        className="h-44 bg-gradient-to-br from-gray-50 to-indigo-50/30 border-b border-gray-100 cursor-pointer overflow-hidden relative group/preview"
+      >
+        <WorkflowPreview nodes={nodes} edges={edges} />
+        {/* Hover overlay with "Open" hint */}
+        <div className="absolute inset-0 bg-indigo-600/0 group-hover/preview:bg-indigo-600/5 transition-colors flex items-center justify-center">
+          <div className="opacity-0 group-hover/preview:opacity-100 transition-opacity bg-white shadow-md rounded-full px-3 py-1.5 flex items-center gap-1 text-xs font-medium text-indigo-700">
+            <ArrowUpRight size={14} />
+            Open workflow
+          </div>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="p-4 flex-1 flex flex-col gap-3">
+        {/* Name + status badge */}
+        <div className="flex items-start justify-between gap-2 min-h-[24px]">
           {editing ? (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-1 min-w-0">
               <input
                 autoFocus
                 value={draftName}
@@ -53,54 +89,63 @@ export function WorkflowCard({ id, name, updatedAt, lastRunStatus, onDeleteReque
                   if (e.key === 'Enter') commitRename()
                   if (e.key === 'Escape') { setEditing(false); setDraftName(name) }
                 }}
-                className="flex-1 bg-gray-50 text-sm text-gray-800 rounded px-2 py-1 border border-indigo-400 outline-none"
+                className="flex-1 min-w-0 bg-gray-50 text-sm text-gray-800 rounded px-2 py-1 border border-indigo-400 outline-none"
               />
-              <button onClick={commitRename} className="text-green-500 hover:text-green-600">
-                <Check size={14} />
+              <button onClick={commitRename} className="text-green-500 hover:text-green-600 flex-shrink-0">
+                <Check size={15} />
               </button>
-              <button onClick={() => { setEditing(false); setDraftName(name) }} className="text-gray-400 hover:text-gray-600">
-                <X size={14} />
+              <button onClick={() => { setEditing(false); setDraftName(name) }} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                <X size={15} />
               </button>
             </div>
           ) : (
-            <h3 className="text-sm font-semibold text-gray-800 truncate">{name}</h3>
+            <h3 className="text-base font-semibold text-gray-900 truncate flex-1 min-w-0" title={name}>
+              {name}
+            </h3>
           )}
-          <p className="text-xs text-gray-400 mt-1">{formatDistanceToNow(updatedAt)}</p>
+          {!editing && lastRunStatus && (
+            <Badge variant={statusVariant as 'default' | 'success' | 'error' | 'warning' | 'info'}>
+              {lastRunStatus.toLowerCase()}
+            </Badge>
+          )}
         </div>
 
-        {lastRunStatus && (
-          <Badge variant={statusVariant as 'default' | 'success' | 'error' | 'warning' | 'info'}>
-            {lastRunStatus}
-          </Badge>
-        )}
-      </div>
+        {/* Metadata */}
+        <p className="text-xs text-gray-400 -mt-2">
+          Last edited {formatDistanceToNow(updatedAt)} · {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'}
+        </p>
 
-      <div className="flex items-center gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={() => router.push(`/workflows/${id}/canvas`)}
-          className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-700 transition-colors"
-        >
-          <ExternalLink size={12} /> Open
-        </button>
-        <button
-          onClick={() => setEditing(true)}
-          className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors"
-        >
-          <Pencil size={12} /> Rename
-        </button>
-        <button
-          onClick={handleExport}
-          className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors"
-        >
-          <Download size={12} /> Export
-        </button>
-
-        <button
-          onClick={() => onDeleteRequest(id, name)}
-          className="ml-auto flex items-center gap-1 text-xs text-gray-300 hover:text-red-500 transition-colors"
-        >
-          <Trash2 size={12} />
-        </button>
+        {/* Actions row */}
+        <div className="flex items-center gap-1 mt-auto pt-2 border-t border-gray-100">
+          <button
+            onClick={open}
+            className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg px-3 py-2 transition-colors"
+          >
+            <ArrowUpRight size={13} />
+            Open
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setEditing(true) }}
+            title="Rename"
+            className="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            onClick={handleExport}
+            title="Export JSON"
+            className="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <Download size={14} />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDeleteRequest(id, name) }}
+            title="Delete"
+            className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
       </div>
     </div>
   )

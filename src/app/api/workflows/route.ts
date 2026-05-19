@@ -15,6 +15,8 @@ export async function GET() {
       select: {
         id: true,
         name: true,
+        nodes: true,
+        edges: true,
         createdAt: true,
         updatedAt: true,
         runs: {
