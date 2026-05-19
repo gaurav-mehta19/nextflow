@@ -21,7 +21,7 @@ export async function POST() {
       expires: new Date(Date.now() + 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, '+00:00'),
     },
     steps: {
-      stored: {
+      ':original': {
         robot: '/upload/handle',
         result: true,
       },

@@ -62,6 +62,7 @@ export async function uploadToTransloadit(file: File): Promise<string> {
 
 function pickResultUrl(status: AssemblyStatus): string | undefined {
   return (
+    status.results?.[':original']?.[0]?.ssl_url ??
     status.results?.stored?.[0]?.ssl_url ??
     status.uploads?.[0]?.ssl_url
   )
