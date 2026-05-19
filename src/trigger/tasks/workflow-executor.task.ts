@@ -116,7 +116,20 @@ export const workflowExecutorTask = task({
 
         if (node.data.kind === NodeKind.RESPONSE) {
           const resolvedInputs = resolveInputs(nodeId, incomingEdges, nodeOutputs)
-          const outputData = { result: resolvedInputs['result'] ?? null }
+          // Collect any imageUrls from upstream sources so the Response card
+          // can render thumbnails alongside Gemini text that references them.
+          const incoming = incomingEdges.get(nodeId) ?? []
+          const imageUrls: string[] = []
+          for (const edge of incoming) {
+            const src = nodeOutputs.get(edge.source) ?? {}
+            const srcImages = src['imageUrls']
+            if (Array.isArray(srcImages)) {
+              for (const u of srcImages) {
+                if (typeof u === 'string' && u.length > 0 && !imageUrls.includes(u)) imageUrls.push(u)
+              }
+            }
+          }
+          const outputData = { result: resolvedInputs['result'] ?? null, imageUrls }
           nodeOutputs.set(nodeId, outputData)
           await prisma.nodeRun.updateMany({
             where: { runId, nodeId },
@@ -231,7 +244,13 @@ export const workflowExecutorTask = task({
           const item = geminiBatch[i]
           const run = result.runs[i]
           if (run.ok) {
-            const outputData = { response: run.output.response ?? '' }
+            // Persist the imageUrls Gemini received so the UI can render
+            // thumbnails alongside the text (Gemini can't generate images,
+            // only reference them by "Image 1", "Image 2", etc.)
+            const outputData = {
+              response: run.output.response ?? '',
+              imageUrls: item.payload.imageUrls ?? [],
+            }
             nodeOutputs.set(item.nodeId, outputData)
             await prisma.nodeRun.updateMany({
               where: { runId, nodeId: item.nodeId },

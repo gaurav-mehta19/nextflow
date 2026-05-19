@@ -5,11 +5,12 @@ export default defineConfig({
   dirs: ['./src/trigger'],
   maxDuration: 300,
   retries: {
-    enabledInDev: false,
+    // Retry transient failures (e.g. Gemini 503/429) even in dev so the demo isn't disrupted
+    enabledInDev: true,
     default: {
-      maxAttempts: 2,
-      minTimeoutInMs: 1000,
-      maxTimeoutInMs: 10000,
+      maxAttempts: 4,
+      minTimeoutInMs: 3000,
+      maxTimeoutInMs: 30000,
       factor: 2,
       randomize: true,
     },

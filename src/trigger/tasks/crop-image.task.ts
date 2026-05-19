@@ -34,7 +34,13 @@ export const cropImageTask = task({
     // Mandatory artificial delay: 30-35 seconds
     await new Promise((r) => setTimeout(r, 30000 + Math.random() * 5000))
 
-    // Build Transloadit assembly for FFmpeg crop
+    // Convert x/y/w/h percentages to x1/y1/x2/y2 corner coordinates
+    // that the /image/resize robot's `crop` parameter expects.
+    const x1Pct = Math.max(0, Math.min(100, xPct))
+    const y1Pct = Math.max(0, Math.min(100, yPct))
+    const x2Pct = Math.max(0, Math.min(100, xPct + wPct))
+    const y2Pct = Math.max(0, Math.min(100, yPct + hPct))
+
     const templateSteps = {
       import: {
         robot: '/http/import',
@@ -44,10 +50,10 @@ export const cropImageTask = task({
         robot: '/image/resize',
         use: 'import',
         crop: {
-          x: `${xPct}%`,
-          y: `${yPct}%`,
-          w: `${wPct}%`,
-          h: `${hPct}%`,
+          x1: `${x1Pct}%`,
+          y1: `${y1Pct}%`,
+          x2: `${x2Pct}%`,
+          y2: `${y2Pct}%`,
         },
         result: true,
       },
