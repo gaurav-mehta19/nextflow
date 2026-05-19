@@ -162,21 +162,26 @@ export default function CanvasPage() {
   return (
     <div className="h-screen flex flex-col bg-white">
       {/* Header */}
-      <header className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-200 bg-white z-20 flex-shrink-0">
+      <header className="flex items-center gap-3 px-5 h-14 border-b border-gray-100 bg-white/95 backdrop-blur-md z-20 flex-shrink-0">
         <button
           onClick={() => router.push('/dashboard')}
-          className="text-gray-400 hover:text-gray-700 transition-colors"
+          className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          title="Back to dashboard"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={17} />
         </button>
 
+        <div className="w-px h-5 bg-gray-200" />
+
         <div className="flex items-center gap-2">
-          <Workflow size={16} className="text-indigo-500" />
+          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+            <Workflow size={13} className="text-white" />
+          </div>
           {editingName ? (
             <div className="flex items-center gap-1">
               <input
                 ref={nameInputRef}
-                className="text-sm font-semibold text-gray-800 bg-gray-50 border border-indigo-400 rounded px-2 py-0.5 outline-none"
+                className="text-sm font-semibold text-gray-900 bg-gray-50 border border-indigo-400 rounded-md px-2 py-0.5 outline-none focus:bg-white"
                 value={nameInput}
                 onChange={(e) => setNameInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -185,13 +190,13 @@ export default function CanvasPage() {
                 }}
                 autoFocus
               />
-              <button onClick={() => { void handleNameSave() }} className="text-green-500 hover:text-green-600">
+              <button onClick={() => { void handleNameSave() }} className="w-6 h-6 flex items-center justify-center text-green-600 hover:bg-green-50 rounded">
                 <Check size={14} />
               </button>
             </div>
           ) : (
             <span
-              className="text-sm font-semibold text-gray-800 cursor-pointer hover:text-indigo-600 transition-colors"
+              className="text-sm font-semibold text-gray-900 cursor-pointer hover:text-indigo-600 transition-colors px-1.5 py-0.5 rounded hover:bg-gray-50"
               onDoubleClick={() => { setNameInput(workflowName); setEditingName(true) }}
               title="Double-click to rename"
             >
@@ -210,7 +215,7 @@ export default function CanvasPage() {
               disabled={running}
               title="Run selected node(s) and their dependencies"
             >
-              <Play size={14} />
+              <Play size={13} />
               Run selected ({selectedCount})
             </Button>
           )}
@@ -220,21 +225,25 @@ export default function CanvasPage() {
             loading={running}
             onClick={() => { void handleRun('full') }}
             disabled={running}
+            className="!bg-indigo-600 hover:!bg-indigo-500 shadow-[0_2px_8px_rgba(79,70,229,0.25)]"
           >
-            <Play size={14} />
+            <Play size={13} strokeWidth={2.5} />
             {running ? 'Running…' : 'Run'}
           </Button>
 
           <button
             onClick={() => setHistoryOpen((p) => !p)}
-            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 transition-colors border border-gray-200 hover:border-gray-300 rounded-lg px-2.5 py-1.5"
+            className="flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg px-2.5 h-8 transition-colors"
+            title={historyOpen ? 'Hide history' : 'Show history'}
           >
             <History size={14} />
             History
             {historyOpen ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
           </button>
 
-          <UserButton afterSignOutUrl="/sign-in" />
+          <div className="ml-1">
+            <UserButton afterSignOutUrl="/sign-in" />
+          </div>
         </div>
       </header>
 
@@ -246,7 +255,7 @@ export default function CanvasPage() {
         </div>
 
         {historyOpen && (
-          <div className="w-72 border-l border-gray-200 bg-white flex flex-col overflow-hidden flex-shrink-0">
+          <div className="w-80 border-l border-gray-100 bg-white flex flex-col overflow-hidden flex-shrink-0">
             <HistoryPanel workflowId={workflowId} />
           </div>
         )}
