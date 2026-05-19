@@ -464,38 +464,6 @@ nextflow/
 ├── tsconfig.json
 └── package.json
 ```
-
----
-
-## Deployment
-
-### Vercel (recommended for the Next.js app)
-
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy from repo root
-vercel
-
-# Add every env var from .env to the project's Vercel env settings
-```
-
-Make sure `NEXT_PUBLIC_APP_URL` is set to your deployed origin (e.g. `https://nextflow-xxx.vercel.app`) — the Trigger.dev worker needs that URL to fetch the sample image.
-
-### Trigger.dev cloud
-
-```bash
-# Deploy your tasks to Trigger.dev's cloud
-npx trigger.dev@3.3.17 deploy
-```
-
-In production, Trigger.dev runs the tasks on their cloud workers, so you don't need a long-running process anywhere.
-
-### Neon
-
-Database is already cloud-hosted. Make sure to use the **pooled** connection URL in production (it ends in `-pooler.region.aws.neon.tech`) for serverless compatibility.
-
 ---
 
 ## Troubleshooting
@@ -514,12 +482,3 @@ Database is already cloud-hosted. Make sure to use the **pooled** connection URL
 
 ---
 
-## License
-
-MIT — feel free to adapt.
-
-## Acknowledgements
-
-Built as a study of the [Galaxy.ai](https://galaxy.ai) workflow builder. Reference workflow design borrowed from the assignment spec.
-
-Stack design and node UX inspired by [n8n](https://n8n.io), [Linear](https://linear.app), and [Vercel](https://vercel.com)'s visual language.
