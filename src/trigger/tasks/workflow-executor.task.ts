@@ -1,4 +1,4 @@
-import { task } from '@trigger.dev/sdk/v3'
+import { task } from '@trigger.dev/sdk'
 import type { Edge } from '@xyflow/react'
 import { prisma } from '../../lib/db/client'
 import { topologicalSort } from '../../lib/dag/topological-sort'

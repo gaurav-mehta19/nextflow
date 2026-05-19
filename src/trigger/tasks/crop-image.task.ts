@@ -1,4 +1,4 @@
-import { task } from '@trigger.dev/sdk/v3'
+import { task } from '@trigger.dev/sdk'
 import { createHmac } from 'crypto'
 import { prisma } from '../../lib/db/client'
 

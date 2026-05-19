@@ -11,8 +11,8 @@
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
-    "trigger:dev": "npx trigger.dev@3.3.17 dev",
-    "trigger:deploy": "npx trigger.dev@3.3.17 deploy",
+    "trigger:dev": "npx trigger.dev@4.4.6 dev",
+    "trigger:deploy": "npx trigger.dev@4.4.6 deploy",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -20,7 +20,7 @@
     "@google/generative-ai": "^0.7.1",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "@trigger.dev/sdk": "^3.3.17",
+    "@trigger.dev/sdk": "^4.4.6",
     "@xyflow/react": "^12.0.0",
     "dotenv": "^16.4.5",
     "lucide-react": "^0.378.0",

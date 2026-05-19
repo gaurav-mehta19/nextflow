@@ -1,4 +1,4 @@
-import { task } from '@trigger.dev/sdk/v3'
+import { task } from '@trigger.dev/sdk'
 import { GoogleGenerativeAI, type Part } from '@google/generative-ai'
 import { prisma } from '../../lib/db/client'
 
