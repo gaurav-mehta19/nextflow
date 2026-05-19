@@ -4,6 +4,12 @@ import { NodeKind } from './types/nodes'
 
 const SAMPLE_MODEL = 'gemini-2.5-pro'
 
+// Default headphones image served from /public so the workflow can be run
+// out of the box without forcing the user to upload first.
+// Falls back to localhost in dev; uses the deployed URL in production via env.
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+const SAMPLE_IMAGE_URL = `${APP_URL}/sample-headphones.jpg`
+
 export function buildSampleWorkflow(): { nodes: Node<NodeData>[]; edges: Edge[] } {
   // Layout (3 rows × 5 columns of 340px-wide cards with ~80px gutters):
   //
@@ -33,6 +39,8 @@ export function buildSampleWorkflow(): { nodes: Node<NodeData>[]; edges: Edge[] 
             id: 'image_field',
             label: 'image_field',
             type: 'image_field',
+            value: SAMPLE_IMAGE_URL,
+            fileName: 'sample-headphones.jpg',
           },
         ],
       },
@@ -92,7 +100,9 @@ export function buildSampleWorkflow(): { nodes: Node<NodeData>[]; edges: Edge[] 
         kind: NodeKind.GEMINI,
         model: SAMPLE_MODEL,
         systemPrompt:
-          'You are a social media manager. Combine the tweet hook and the two product crops into a final marketing post.',
+          'You are a social media manager. Combine the tweet hook and the two product crops into a final marketing post for Instagram. ' +
+          'When you reference the product crops, use exactly "(Image 1)" for the first one and "(Image 2)" for the second one on their own line — these labels will be replaced inline with the actual images in the rendered post. ' +
+          'Output only the post body and hashtags. Do not include section headers like "Caption:" or "Carousel:".',
       },
     },
     {
