@@ -103,6 +103,8 @@ export const cropImageTask = task({
       const status = (await statusRes.json()) as {
         ok?: string
         error?: string
+        message?: string
+        reason?: string
         results?: Record<string, Array<{ ssl_url: string }>>
       }
 
@@ -112,7 +114,11 @@ export const cropImageTask = task({
         break
       }
       if (status.error) {
-        throw new Error(`Transloadit error: ${status.error}`)
+        const detail = status.message || status.reason || ''
+        throw new Error(
+          `Transloadit error: ${status.error}${detail ? ` — ${detail}` : ''}` +
+          ` (source URL: ${imageUrl.slice(0, 120)})`
+        )
       }
       attempts++
     }

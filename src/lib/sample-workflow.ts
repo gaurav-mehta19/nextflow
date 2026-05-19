@@ -4,11 +4,12 @@ import { NodeKind } from './types/nodes'
 
 const SAMPLE_MODEL = 'gemini-2.5-pro'
 
-// Default headphones image served from /public so the workflow can be run
-// out of the box without forcing the user to upload first.
-// Falls back to localhost in dev; uses the deployed URL in production via env.
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-const SAMPLE_IMAGE_URL = `${APP_URL}/sample-headphones.jpg`
+// Default headphones image. Must be a *publicly* reachable URL because
+// Transloadit's cloud robots (which crop the image) cannot fetch from
+// http://localhost — they run in AWS Singapore.
+// Unsplash photo IDs are stable; this URL has been live since 2015.
+const SAMPLE_IMAGE_URL =
+  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1600&q=80&auto=format&fit=crop'
 
 export function buildSampleWorkflow(): { nodes: Node<NodeData>[]; edges: Edge[] } {
   // Layout (3 rows × 5 columns of 340px-wide cards with ~80px gutters):
