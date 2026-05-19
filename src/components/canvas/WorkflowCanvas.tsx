@@ -153,18 +153,19 @@ export function WorkflowCanvas({ workflowId }: WorkflowCanvasProps) {
         selectionMode={SelectionMode.Partial}
         defaultEdgeOptions={{ type: 'animatedEdge' }}
         fitView
-        fitViewOptions={{ padding: 0.1 }}
+        fitViewOptions={{ padding: 0.15 }}
         minZoom={0.1}
         maxZoom={2}
-        className="bg-gray-50"
+        className="bg-[#fafafa]"
         deleteKeyCode={['Delete', 'Backspace']}
         multiSelectionKeyCode="Shift"
+        proOptions={{ hideAttribution: true }}
       >
         <Background
           variant={BackgroundVariant.Dots}
-          color="#d1d5db"
-          gap={20}
-          size={1.5}
+          color="#e4e4e7"
+          gap={24}
+          size={1.2}
         />
         <Controls className="!bg-white !border-gray-200 !rounded-lg !shadow-sm" showInteractive={false} />
         <MiniMapPanel />

@@ -43,7 +43,9 @@ export function AnimatedEdge({
       path={edgePath}
       style={{
         stroke: color,
-        strokeWidth: selected ? 2 : 1.5,
+        strokeWidth: selected ? 2.5 : 2,
+        strokeLinecap: 'round',
+        opacity: selected ? 1 : 0.85,
       }}
     />
   )

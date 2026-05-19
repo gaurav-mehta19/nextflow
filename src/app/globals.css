@@ -2,107 +2,128 @@
 @tailwind components;
 @tailwind utilities;
 
-/* React Flow base styles */
+/* React Flow base */
 .react-flow__node {
-  @apply rounded-xl;
-  transition: transform 0.15s ease;
+  @apply rounded-2xl;
+  transition: transform 0.18s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-/* Selected nodes get a clear indigo ring + slight lift */
-.react-flow__node.selected .node-base {
+/* Node base — premium glass-like card */
+.node-base {
+  @apply bg-white border border-gray-100 rounded-2xl overflow-visible;
+  width: 340px;
+  max-width: 340px;
+  word-wrap: break-word;
   box-shadow:
-    0 0 0 3px rgba(99, 102, 241, 0.45),
-    0 8px 20px rgba(99, 102, 241, 0.18);
-  border-color: rgb(99, 102, 241) !important;
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 12px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.18s ease;
+}
+
+.node-base:hover {
+  border-color: rgb(229, 231, 235);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.node-header {
+  @apply flex items-center gap-2 px-4 py-3 rounded-t-2xl;
+}
+
+/* Selected nodes — calm purple ring + lift */
+.react-flow__node.selected .node-base {
+  border-color: rgb(192, 132, 252) !important;
+  box-shadow:
+    0 0 0 3px rgba(168, 85, 247, 0.18),
+    0 8px 24px rgba(168, 85, 247, 0.12),
+    0 1px 2px rgba(15, 23, 42, 0.04);
 }
 .react-flow__node.selected {
   transform: translateY(-2px);
   z-index: 10;
 }
-
-/* Tiny "Selected" badge bottom-right of each selected card */
 .react-flow__node.selected .node-base::after {
   content: 'Selected';
   position: absolute;
   bottom: -10px;
   right: -6px;
-  background: rgb(99, 102, 241);
+  background: linear-gradient(135deg, rgb(168, 85, 247), rgb(139, 92, 246));
   color: white;
   font-size: 10px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 2px 9px;
   border-radius: 999px;
   letter-spacing: 0.3px;
-  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 4px 10px rgba(168, 85, 247, 0.35);
   pointer-events: none;
 }
 
-/* Node base style — fixed width so long output text never stretches the card */
-.node-base {
-  @apply bg-white border border-gray-200 rounded-xl shadow-sm overflow-visible;
-  width: 340px;
-  max-width: 340px;
-  word-wrap: break-word;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.node-header {
-  @apply flex items-center gap-2 px-4 py-2.5 rounded-t-xl;
-}
-
-/* Running node — vibrant animated purple border + glow */
+/* Running node — vibrant animated purple */
 @keyframes purple-pulse {
   0%, 100% {
     box-shadow:
-      0 0 0 0 rgba(168, 85, 247, 0.8),
-      0 0 28px 8px rgba(168, 85, 247, 0.55);
+      0 0 0 0 rgba(168, 85, 247, 0.7),
+      0 0 28px 8px rgba(168, 85, 247, 0.5);
     border-color: rgb(168, 85, 247);
   }
   50% {
     box-shadow:
-      0 0 0 16px rgba(168, 85, 247, 0),
-      0 0 44px 18px rgba(168, 85, 247, 0.3);
+      0 0 0 14px rgba(168, 85, 247, 0),
+      0 0 40px 16px rgba(168, 85, 247, 0.25);
     border-color: rgb(124, 58, 237);
   }
 }
-
 .node-running {
-  animation: purple-pulse 1.3s ease-in-out infinite;
+  animation: purple-pulse 1.4s ease-in-out infinite;
   border-color: rgb(168, 85, 247) !important;
   border-width: 2px !important;
   border-style: dashed !important;
 }
-
 .node-success {
-  border-color: rgb(34, 197, 94) !important;
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.15), 0 4px 14px rgba(34, 197, 94, 0.1);
+  border-color: rgb(74, 222, 128) !important;
+  box-shadow:
+    0 0 0 1px rgba(34, 197, 94, 0.12),
+    0 4px 14px rgba(34, 197, 94, 0.08),
+    0 1px 2px rgba(15, 23, 42, 0.04);
 }
-
 .node-failed {
-  border-color: rgb(239, 68, 68) !important;
-  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15), 0 4px 14px rgba(239, 68, 68, 0.1);
+  border-color: rgb(248, 113, 113) !important;
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.12),
+    0 4px 14px rgba(239, 68, 68, 0.08),
+    0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
-/* Canvas toolbar button */
+/* Toolbar button */
 .toolbar-btn {
-  @apply p-2 text-gray-500 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-40;
+  @apply flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:hover:bg-transparent;
 }
 
 /* React Flow overrides */
 .react-flow__handle {
   border: none !important;
+  transition: transform 0.15s ease;
+}
+.react-flow__handle:hover {
+  transform: scale(1.2);
 }
 
 .react-flow__controls {
-  @apply shadow-sm;
-}
-
-.react-flow__controls-button {
-  @apply !bg-white !border-gray-200 !text-gray-500 hover:!bg-gray-100 hover:!text-gray-800;
+  display: none; /* using custom toolbar */
 }
 
 .react-flow__minimap {
-  @apply !rounded-lg overflow-hidden;
+  @apply !rounded-xl overflow-hidden;
+  opacity: 0.82;
+  transition: opacity 0.2s ease;
+}
+.react-flow__minimap:hover {
+  opacity: 1;
+}
+
+.react-flow__attribution {
+  display: none;
 }
 
 /* Clerk overrides */
@@ -110,7 +131,7 @@
   @apply w-full;
 }
 
-/* Scrollbar — wider + always visible so users can see they can scroll */
+/* Scrollbar — minimal */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -119,19 +140,19 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full;
+  @apply bg-gray-200 rounded-full;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-500;
+  @apply bg-gray-400;
   background-clip: padding-box;
 }
 
 /* Always-visible scrollbar used inside node response areas */
 .node-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #9ca3af transparent;
+  scrollbar-color: #d4d4d8 transparent;
   overflow-y: scroll;
 }
 .node-scroll::-webkit-scrollbar {
@@ -139,6 +160,16 @@
   display: block;
 }
 .node-scroll::-webkit-scrollbar-thumb {
-  @apply bg-gray-400 rounded-full;
+  @apply bg-gray-300 rounded-full;
   border: none;
+}
+.node-scroll::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
+/* Headings */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
