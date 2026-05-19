@@ -6,6 +6,7 @@ import { TypedHandle } from '../handles/TypedHandle'
 import { HandleType } from '../../../lib/types/handles'
 import type { ResponseData } from '../../../lib/types/nodes'
 import { useRunStore } from '../../../lib/store/run.store'
+import { ResponseWithImages } from '../ResponseWithImages'
 
 interface Props {
   id: string
@@ -14,9 +15,9 @@ interface Props {
 
 function ResponseNodeComponent({ id }: Props) {
   const nodeStatus = useRunStore((s) => s.nodeStatuses[id])
-  const result = nodeStatus?.outputData
-    ? (nodeStatus.outputData as Record<string, unknown>).result
-    : null
+  const outputData = nodeStatus?.outputData as Record<string, unknown> | undefined
+  const result = outputData?.result
+  const imageUrls = Array.isArray(outputData?.imageUrls) ? (outputData.imageUrls as string[]) : []
 
   const statusClass =
     nodeStatus?.status === 'RUNNING' ? 'node-running'
@@ -26,13 +27,13 @@ function ResponseNodeComponent({ id }: Props) {
 
   return (
     <div className={`node-base ${statusClass}`}>
-      <div className="node-header bg-emerald-50 border-b border-emerald-100">
-        <span className="text-sm font-semibold text-emerald-600 uppercase tracking-wider">Response</span>
+      <div className="node-header bg-gradient-to-r from-emerald-50 to-teal-50/40 border-b border-emerald-100/60">
+        <span className="text-[11px] font-semibold text-emerald-700 uppercase tracking-[0.08em]">Response</span>
         {nodeStatus?.status === 'SUCCESS' && (
-          <span className="ml-auto text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">Done</span>
+          <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-green-500 text-white px-2 py-0.5 rounded-full">Done</span>
         )}
         {nodeStatus?.status === 'FAILED' && (
-          <span className="ml-auto text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">Failed</span>
+          <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-red-500 text-white px-2 py-0.5 rounded-full">Failed</span>
         )}
       </div>
 
@@ -42,8 +43,8 @@ function ResponseNodeComponent({ id }: Props) {
         </div>
 
         {result ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 max-h-64 node-scroll whitespace-pre-wrap break-words">
-            {String(result)}
+          <div className="nowheel bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm max-h-[520px] node-scroll">
+            <ResponseWithImages text={String(result)} imageUrls={imageUrls} />
           </div>
         ) : (
           <div className="text-sm text-gray-400 italic text-center py-4">

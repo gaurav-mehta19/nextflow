@@ -50,17 +50,19 @@ function CropImageNodeComponent({ id, data }: Props) {
 
   return (
     <div className={`node-base ${statusClass}`}>
-      <div className="node-header bg-blue-50 border-b border-blue-100">
-        <Crop size={14} className="text-blue-500" />
-        <span className="text-sm font-semibold text-blue-600 uppercase tracking-wider ml-1">Crop Image</span>
+      <div className="node-header bg-gradient-to-r from-blue-50 to-sky-50/40 border-b border-blue-100/60">
+        <div className="w-6 h-6 rounded-lg bg-white border border-blue-100 flex items-center justify-center flex-shrink-0">
+          <Crop size={13} className="text-blue-500" />
+        </div>
+        <span className="text-[11px] font-semibold text-blue-700 uppercase tracking-[0.08em]">Crop Image</span>
         {nodeStatus?.status === 'RUNNING' && (
-          <span className="ml-auto text-xs bg-indigo-500 text-white px-2 py-0.5 rounded-full animate-pulse">Running…</span>
+          <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-indigo-500 text-white px-2 py-0.5 rounded-full animate-pulse">Running</span>
         )}
         {nodeStatus?.status === 'SUCCESS' && (
-          <span className="ml-auto text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">Done</span>
+          <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-green-500 text-white px-2 py-0.5 rounded-full">Done</span>
         )}
         {nodeStatus?.status === 'FAILED' && (
-          <span className="ml-auto text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">Failed</span>
+          <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-red-500 text-white px-2 py-0.5 rounded-full">Failed</span>
         )}
       </div>
 

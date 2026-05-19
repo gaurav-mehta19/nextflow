@@ -9,6 +9,7 @@ import type { GeminiData } from '../../../lib/types/nodes'
 import { useCanvasStore } from '../../../lib/store/canvas.store'
 import { useRunStore } from '../../../lib/store/run.store'
 import { uploadToTransloadit } from '../../../lib/transloadit-upload'
+import { ResponseWithImages } from '../ResponseWithImages'
 
 interface MediaRowProps {
   handleId: string
@@ -143,12 +144,14 @@ function GeminiNodeComponent({ id, data }: Props) {
 
   return (
     <div className={`node-base ${statusClass}`}>
-      <div className="node-header bg-purple-50 border-b border-purple-100">
-        <Sparkles size={14} className="text-purple-500" />
+      <div className="node-header bg-gradient-to-r from-purple-50 to-fuchsia-50/40 border-b border-purple-100/60">
+        <div className="w-6 h-6 rounded-lg bg-white border border-purple-100 flex items-center justify-center flex-shrink-0">
+          <Sparkles size={13} className="text-purple-500" />
+        </div>
         <select
           value={data.model}
           onChange={(e) => update('model', e.target.value)}
-          className="ml-1 bg-transparent text-sm font-semibold text-purple-700 border-0 outline-none cursor-pointer"
+          className="bg-transparent text-sm font-semibold text-purple-800 border-0 outline-none cursor-pointer pr-1"
           onClick={(e) => e.stopPropagation()}
         >
           {GEMINI_MODELS.map((m) => (
@@ -158,19 +161,19 @@ function GeminiNodeComponent({ id, data }: Props) {
           ))}
         </select>
         {nodeStatus?.status === 'RUNNING' && (
-          <span className="ml-auto text-xs bg-indigo-500 text-white px-2 py-0.5 rounded-full animate-pulse">
-            Running…
+          <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-indigo-500 text-white px-2 py-0.5 rounded-full animate-pulse">
+            Running
           </span>
         )}
         {nodeStatus?.status === 'SUCCESS' && (
-          <span className="ml-auto text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">Done</span>
+          <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-green-500 text-white px-2 py-0.5 rounded-full">Done</span>
         )}
         {nodeStatus?.status === 'FAILED' && (
-          <span className="ml-auto text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">Failed</span>
+          <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-red-500 text-white px-2 py-0.5 rounded-full">Failed</span>
         )}
       </div>
 
-      <div className="p-4 space-y-3">
+      <div className="p-4 space-y-4">
         {/* Prompt */}
         <div className="relative">
           <div className="absolute -left-3 top-3">
@@ -302,9 +305,12 @@ function GeminiNodeComponent({ id, data }: Props) {
         {/* Response section — always visible, fills after run */}
         <div className="relative pt-3 border-t border-gray-100">
           <label className="block text-xs text-gray-400 mb-1.5">Response</label>
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm max-h-56 node-scroll whitespace-pre-wrap break-words min-h-[64px]">
+          <div className="nowheel bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm max-h-[480px] node-scroll min-h-[64px]">
             {typeof outputData?.response === 'string' && outputData.response ? (
-              <span className="text-gray-700">{outputData.response as string}</span>
+              <ResponseWithImages
+                text={outputData.response as string}
+                imageUrls={Array.isArray(outputData?.imageUrls) ? (outputData.imageUrls as string[]) : []}
+              />
             ) : (
               <span className="text-gray-400 italic text-xs">No output yet</span>
             )}

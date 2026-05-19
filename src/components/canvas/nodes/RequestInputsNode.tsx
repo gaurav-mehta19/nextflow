@@ -27,6 +27,13 @@ const FIELD_CONFIG: Record<FieldType, {
 import { useCanvasStore } from '../../../lib/store/canvas.store'
 import { useRunStore } from '../../../lib/store/run.store'
 
+// Drop any edges that originated from the deleted field's handle so
+// downstream nodes don't keep a phantom incoming connection.
+function pruneEdgesForField(nodeId: string, fieldId: string) {
+  const { edges, setEdges } = useCanvasStore.getState()
+  setEdges(edges.filter((e) => !(e.source === nodeId && e.sourceHandle === fieldId)))
+}
+
 interface Props {
   id: string
   data: RequestInputsData
@@ -49,8 +56,12 @@ function RequestInputsNodeComponent({ id, data }: Props) {
         audio_field: 'Audio Field',
         file_field: 'File Field',
       }
+      // ID must encode the type so the canvas handle-type checker
+      // (which substring-matches handleId for "image"/"video"/etc.)
+      // correctly types this source handle. Without this, image fields
+      // would be inferred as TEXT and couldn't connect to image targets.
       const newField: FieldDef = {
-        id: `field-${Date.now()}`,
+        id: `${type}-${Date.now()}`,
         label: labelMap[type],
         type,
       }
@@ -62,6 +73,7 @@ function RequestInputsNodeComponent({ id, data }: Props) {
   const removeField = useCallback(
     (fieldId: string) => {
       updateNodeData(id, { fields: data.fields.filter((f) => f.id !== fieldId) } as Partial<RequestInputsData>)
+      pruneEdgesForField(id, fieldId)
     },
     [id, data.fields, updateNodeData]
   )
@@ -95,19 +107,19 @@ function RequestInputsNodeComponent({ id, data }: Props) {
 
   return (
     <div className={`node-base ${statusClass}`}>
-      <div className="node-header bg-indigo-50 border-b border-indigo-100">
-        <span className="text-sm font-semibold text-indigo-600 uppercase tracking-wider">
+      <div className="node-header bg-gradient-to-r from-indigo-50 to-blue-50/40 border-b border-indigo-100/60">
+        <span className="text-[11px] font-semibold text-indigo-700 uppercase tracking-[0.08em]">
           Request Inputs
         </span>
         {nodeStatus?.status === 'SUCCESS' && (
-          <span className="ml-auto text-xs bg-green-600 text-white px-2 py-0.5 rounded-full">Done</span>
+          <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-green-500 text-white px-2 py-0.5 rounded-full">Done</span>
         )}
         {nodeStatus?.status === 'FAILED' && (
-          <span className="ml-auto text-xs bg-red-600 text-white px-2 py-0.5 rounded-full">Failed</span>
+          <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-red-500 text-white px-2 py-0.5 rounded-full">Failed</span>
         )}
       </div>
 
-      <div className="p-4 space-y-3">
+      <div className="p-4 space-y-4">
         {data.fields.map((field) => {
           const cfg = FIELD_CONFIG[field.type]
           const Icon = cfg.icon
