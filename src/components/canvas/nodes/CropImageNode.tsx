@@ -2,29 +2,61 @@
 
 import React, { memo, useCallback } from 'react'
 import { Position } from '@xyflow/react'
+import { useShallow } from 'zustand/react/shallow'
 import { Crop } from 'lucide-react'
 import { TypedHandle } from '../handles/TypedHandle'
 import { HandleType } from '../../../lib/types/handles'
-import type { CropImageData } from '../../../lib/types/nodes'
+import { NodeKind, type CropImageData, type RequestInputsData } from '../../../lib/types/nodes'
 import { useCanvasStore } from '../../../lib/store/canvas.store'
 import { useRunStore } from '../../../lib/store/run.store'
+
+const CROP_HANDLES = ['input-x-number', 'input-y-number', 'input-w-number', 'input-h-number'] as const
+type CropHandle = (typeof CROP_HANDLES)[number]
 
 interface Props {
   id: string
   data: CropImageData
 }
 
-function SliderField({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+function SliderField({
+  label,
+  value,
+  onChange,
+  handleId,
+  overrideValue,
+}: {
+  label: string
+  value: number
+  onChange: (v: number) => void
+  handleId: string
+  overrideValue?: number
+}) {
+  const connected = overrideValue !== undefined
+  const displayValue = connected ? overrideValue : value
+  const sliderValue = Math.min(100, Math.max(0, displayValue))
+
   return (
-    <div className="space-y-1.5">
+    <div className="relative space-y-1.5">
+      <div className="absolute -left-3 top-1/2 -translate-y-1/2">
+        <TypedHandle
+          id={handleId}
+          type="target"
+          position={Position.Left}
+          handleType={HandleType.NUMBER}
+          label={label}
+        />
+      </div>
       <div className="flex justify-between text-sm text-gray-400">
         <span>{label}</span>
-        <span className="text-gray-600 font-medium">{value}%</span>
+        <span className={connected ? 'text-pink-500 font-medium' : 'text-gray-600 font-medium'}>
+          {displayValue}%
+        </span>
       </div>
       <input
-        type="range" min={0} max={100} value={value}
+        type="range" min={0} max={100} value={sliderValue}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-1 accent-blue-500 cursor-pointer"
+        disabled={connected}
+        className={`w-full h-1 cursor-pointer ${connected ? 'accent-pink-500 opacity-70' : 'accent-blue-500'}`}
       />
     </div>
   )
@@ -40,6 +72,27 @@ function CropImageNodeComponent({ id, data }: Props) {
       updateNodeData(id, { [key]: value } as Partial<CropImageData>)
     },
     [id, updateNodeData]
+  )
+
+  // Derive only the override values, with shallow equality — re-renders only
+  // when an override actually changes, not on every node/edge mutation.
+  const overrides = useCanvasStore(
+    useShallow((s): Partial<Record<CropHandle, number>> => {
+      const out: Partial<Record<CropHandle, number>> = {}
+      for (const h of CROP_HANDLES) {
+        const edge = s.edges.find((e) => e.target === id && e.targetHandle === h)
+        if (!edge) continue
+        const sourceNode = s.nodes.find((n) => n.id === edge.source)
+        if (!sourceNode) continue
+        const srcData = sourceNode.data
+        if (srcData.kind !== NodeKind.REQUEST_INPUTS) continue
+        const field = (srcData as RequestInputsData).fields.find((f) => f.id === edge.sourceHandle)
+        if (!field) continue
+        const n = Number(field.value)
+        if (Number.isFinite(n)) out[h] = n
+      }
+      return out
+    }),
   )
 
   const statusClass =
@@ -74,10 +127,10 @@ function CropImageNodeComponent({ id, data }: Props) {
           <span className="ml-4 text-sm text-gray-400">Input Image</span>
         </div>
 
-        <SliderField label="X Position %" value={data.xPct} onChange={(v) => update('xPct', v)} />
-        <SliderField label="Y Position %" value={data.yPct} onChange={(v) => update('yPct', v)} />
-        <SliderField label="Width %" value={data.wPct} onChange={(v) => update('wPct', v)} />
-        <SliderField label="Height %" value={data.hPct} onChange={(v) => update('hPct', v)} />
+        <SliderField label="X Position %" value={data.xPct} onChange={(v) => update('xPct', v)} handleId="input-x-number" overrideValue={overrides['input-x-number']} />
+        <SliderField label="Y Position %" value={data.yPct} onChange={(v) => update('yPct', v)} handleId="input-y-number" overrideValue={overrides['input-y-number']} />
+        <SliderField label="Width %"      value={data.wPct} onChange={(v) => update('wPct', v)} handleId="input-w-number" overrideValue={overrides['input-w-number']} />
+        <SliderField label="Height %"     value={data.hPct} onChange={(v) => update('hPct', v)} handleId="input-h-number" overrideValue={overrides['input-h-number']} />
 
         {typeof outputData?.['output-image'] === 'string' && (
           // eslint-disable-next-line @next/next/no-img-element

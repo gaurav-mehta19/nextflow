@@ -2,7 +2,7 @@
 
 import React, { memo, useCallback, useRef, useState } from 'react'
 import { Position } from '@xyflow/react'
-import { Plus, Trash2, Type, Image, Video, Music, FileText, Upload, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Type, Image, Video, Music, FileText, Upload, Loader2, Hash } from 'lucide-react'
 import { TypedHandle } from '../handles/TypedHandle'
 import { HandleType } from '../../../lib/types/handles'
 import { NodeKind, type RequestInputsData, type FieldDef, type FieldType } from '../../../lib/types/nodes'
@@ -18,11 +18,12 @@ const FIELD_CONFIG: Record<FieldType, {
   uploadLabel: string
   shortLabel: string
 }> = {
-  text_field:  { icon: Type,     iconColor: 'text-orange-400', hoverBorder: 'hover:border-orange-400', hoverText: 'hover:text-orange-500', handleType: HandleType.TEXT,  accept: '',         uploadLabel: '',                shortLabel: 'Text' },
-  image_field: { icon: Image,    iconColor: 'text-blue-400',   hoverBorder: 'hover:border-blue-400',   hoverText: 'hover:text-blue-500',   handleType: HandleType.IMAGE, accept: 'image/*',  uploadLabel: 'Upload image',    shortLabel: 'Image' },
-  video_field: { icon: Video,    iconColor: 'text-purple-400', hoverBorder: 'hover:border-purple-400', hoverText: 'hover:text-purple-500', handleType: HandleType.VIDEO, accept: 'video/*',  uploadLabel: 'Upload video',    shortLabel: 'Video' },
-  audio_field: { icon: Music,    iconColor: 'text-green-400',  hoverBorder: 'hover:border-green-400',  hoverText: 'hover:text-green-500',  handleType: HandleType.AUDIO, accept: 'audio/*',  uploadLabel: 'Upload audio',    shortLabel: 'Audio' },
-  file_field:  { icon: FileText, iconColor: 'text-gray-400',   hoverBorder: 'hover:border-gray-400',   hoverText: 'hover:text-gray-700',   handleType: HandleType.FILE,  accept: '*/*',      uploadLabel: 'Upload file',     shortLabel: 'File' },
+  text_field:   { icon: Type,     iconColor: 'text-orange-400', hoverBorder: 'hover:border-orange-400', hoverText: 'hover:text-orange-500', handleType: HandleType.TEXT,   accept: '',         uploadLabel: '',                shortLabel: 'Text' },
+  number_field: { icon: Hash,     iconColor: 'text-pink-500',   hoverBorder: 'hover:border-pink-400',   hoverText: 'hover:text-pink-500',   handleType: HandleType.NUMBER, accept: '',         uploadLabel: '',                shortLabel: 'Number' },
+  image_field:  { icon: Image,    iconColor: 'text-blue-400',   hoverBorder: 'hover:border-blue-400',   hoverText: 'hover:text-blue-500',   handleType: HandleType.IMAGE,  accept: 'image/*',  uploadLabel: 'Upload image',    shortLabel: 'Image' },
+  video_field:  { icon: Video,    iconColor: 'text-purple-400', hoverBorder: 'hover:border-purple-400', hoverText: 'hover:text-purple-500', handleType: HandleType.VIDEO,  accept: 'video/*',  uploadLabel: 'Upload video',    shortLabel: 'Video' },
+  audio_field:  { icon: Music,    iconColor: 'text-green-400',  hoverBorder: 'hover:border-green-400',  hoverText: 'hover:text-green-500',  handleType: HandleType.AUDIO,  accept: 'audio/*',  uploadLabel: 'Upload audio',    shortLabel: 'Audio' },
+  file_field:   { icon: FileText, iconColor: 'text-gray-400',   hoverBorder: 'hover:border-gray-400',   hoverText: 'hover:text-gray-700',   handleType: HandleType.FILE,   accept: '*/*',      uploadLabel: 'Upload file',     shortLabel: 'File' },
 }
 import { useCanvasStore } from '../../../lib/store/canvas.store'
 import { useRunStore } from '../../../lib/store/run.store'
@@ -51,6 +52,7 @@ function RequestInputsNodeComponent({ id, data }: Props) {
     (type: FieldType) => {
       const labelMap: Record<FieldType, string> = {
         text_field: 'Text Field',
+        number_field: 'number_field',
         image_field: 'Image Field',
         video_field: 'Video Field',
         audio_field: 'Audio Field',
@@ -61,7 +63,7 @@ function RequestInputsNodeComponent({ id, data }: Props) {
       // correctly types this source handle. Without this, image fields
       // would be inferred as TEXT and couldn't connect to image targets.
       const newField: FieldDef = {
-        id: `${type}-${Date.now()}`,
+        id: `${type}-${crypto.randomUUID()}`,
         label: labelMap[type],
         type,
       }
@@ -149,6 +151,15 @@ function RequestInputsNodeComponent({ id, data }: Props) {
                   value={field.value ?? ''}
                   onChange={(e) => updateFieldValue(field.id, e.target.value)}
                 />
+              ) : field.type === 'number_field' ? (
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  className="w-full bg-gray-50 text-sm text-gray-700 rounded-lg px-3 py-2 border border-gray-200 focus:border-pink-400 outline-none"
+                  placeholder="0"
+                  value={field.value ?? ''}
+                  onChange={(e) => updateFieldValue(field.id, e.target.value)}
+                />
               ) : (
                 <div
                   className={`w-full bg-gray-50 border border-dashed border-gray-300 rounded-lg p-3 text-center ${
@@ -220,7 +231,7 @@ function RequestInputsNodeComponent({ id, data }: Props) {
           )
         })}
 
-        <div className="grid grid-cols-5 gap-1.5 mt-2">
+        <div className="grid grid-cols-3 gap-1.5 mt-2">
           {(Object.keys(FIELD_CONFIG) as FieldType[]).map((type) => {
             const cfg = FIELD_CONFIG[type]
             const Icon = cfg.icon

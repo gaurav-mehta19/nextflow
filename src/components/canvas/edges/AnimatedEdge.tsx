@@ -1,17 +1,8 @@
 'use client'
 
 import { BaseEdge, getBezierPath, type EdgeProps } from '@xyflow/react'
-import { HandleType, HANDLE_COLORS } from '../../../lib/types/handles'
+import { HANDLE_COLORS, inferHandleType } from '../../../lib/types/handles'
 import { useCanvasStore } from '../../../lib/store/canvas.store'
-
-function inferColor(sourceHandle: string | null | undefined): string {
-  if (!sourceHandle) return HANDLE_COLORS[HandleType.TEXT]
-  if (sourceHandle.includes('image')) return HANDLE_COLORS[HandleType.IMAGE]
-  if (sourceHandle.includes('video')) return HANDLE_COLORS[HandleType.VIDEO]
-  if (sourceHandle.includes('audio')) return HANDLE_COLORS[HandleType.AUDIO]
-  if (sourceHandle.includes('file')) return HANDLE_COLORS[HandleType.FILE]
-  return HANDLE_COLORS[HandleType.TEXT]
-}
 
 export function AnimatedEdge({
   id,
@@ -35,7 +26,7 @@ export function AnimatedEdge({
     curvature: 0.4,
   })
 
-  const color = selected ? '#6366f1' : inferColor(sourceHandle)
+  const color = selected ? '#6366f1' : HANDLE_COLORS[inferHandleType(sourceHandle)]
 
   return (
     <BaseEdge
