@@ -23,6 +23,18 @@ interface CropImagePayload {
 
 export const cropImageTask = task({
   id: 'crop-image',
+  // Mark NodeRun FAILED only after all retries are exhausted — single-attempt
+  // failures still get retried per trigger.config.ts.
+  onFailure: async ({ payload, error }) => {
+    await prisma.nodeRun.update({
+      where: { id: payload.nodeRunId },
+      data: {
+        status: 'FAILED',
+        finishedAt: new Date(),
+        errorMsg: error instanceof Error ? error.message : String(error),
+      },
+    }).catch(() => { /* NodeRun row may not exist; swallow */ })
+  },
   run: async (payload: CropImagePayload): Promise<{ outputUrl: string }> => {
     const { imageUrl, xPct, yPct, wPct, hPct, nodeRunId } = payload
 
@@ -127,9 +139,16 @@ export const cropImageTask = task({
       outputUrl = imageUrl
     }
 
+    // Write the full output shape downstream nodes expect — keyed by the
+    // source handle id 'output-image' so resolveInputs() picks it up
+    // directly without the executor needing to transform it.
     await prisma.nodeRun.update({
       where: { id: nodeRunId },
-      data: { status: 'SUCCESS', finishedAt: new Date(), outputData: { outputUrl } },
+      data: {
+        status: 'SUCCESS',
+        finishedAt: new Date(),
+        outputData: { 'output-image': outputUrl },
+      },
     })
 
     return { outputUrl }

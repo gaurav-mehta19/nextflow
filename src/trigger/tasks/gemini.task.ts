@@ -12,6 +12,16 @@ interface GeminiPayload {
 
 export const geminiTask = task({
   id: 'gemini-inference',
+  onFailure: async ({ payload, error }) => {
+    await prisma.nodeRun.update({
+      where: { id: payload.nodeRunId },
+      data: {
+        status: 'FAILED',
+        finishedAt: new Date(),
+        errorMsg: error instanceof Error ? error.message : String(error),
+      },
+    }).catch(() => { /* NodeRun row may not exist; swallow */ })
+  },
   run: async (payload: GeminiPayload): Promise<{ response: string }> => {
     const { prompt, systemPrompt, imageUrls, model, nodeRunId } = payload
 
@@ -64,12 +74,19 @@ export const geminiTask = task({
 
     const responseText = result.response.text()
 
+    // Persist the imageUrls Gemini consumed alongside the response so the
+    // Response node downstream can render thumbnails inline at the
+    // "(Image 1)" / "(Image 2)" references. The executor reads this shape
+    // directly from outputData — no in-flight transformation needed.
     await prisma.nodeRun.update({
       where: { id: nodeRunId },
       data: {
         status: 'SUCCESS',
         finishedAt: new Date(),
-        outputData: { response: responseText },
+        outputData: {
+          response: responseText,
+          imageUrls: imageUrls ?? [],
+        },
       },
     })
 
