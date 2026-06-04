@@ -28,6 +28,7 @@ interface CanvasState {
   workflowId: string | null
   workflowName: string
   isSaving: boolean
+  selectMode: boolean
   setWorkflowId: (id: string) => void
   setWorkflowName: (name: string) => void
   setNodes: (nodes: FlowNode[]) => void
@@ -42,6 +43,8 @@ interface CanvasState {
   redo: () => void
   pushHistory: () => void
   setIsSaving: (saving: boolean) => void
+  toggleSelectMode: () => void
+  setSelectMode: (on: boolean) => void
   reset: () => void
 }
 
@@ -53,10 +56,13 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   workflowId: null,
   workflowName: 'New Workflow',
   isSaving: false,
+  selectMode: false,
 
   setWorkflowId: (id) => set({ workflowId: id }),
   setWorkflowName: (name) => set({ workflowName: name }),
   setIsSaving: (saving) => set({ isSaving: saving }),
+  toggleSelectMode: () => set((s) => ({ selectMode: !s.selectMode })),
+  setSelectMode: (on) => set({ selectMode: on }),
 
   setNodes: (nodes) => set({ nodes }),
 

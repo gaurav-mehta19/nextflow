@@ -107,7 +107,7 @@ export function NodePicker({ open, onClose }: NodePickerProps) {
       y: window.innerHeight / 2,
     })
     const node: Node<NodeData> = {
-      id: `${item.kind}-${Date.now()}`,
+      id: `${item.kind}-${crypto.randomUUID()}`,
       type: item.kind,
       position: {
         x: viewportCenter.x + (Math.random() * 80 - 40),

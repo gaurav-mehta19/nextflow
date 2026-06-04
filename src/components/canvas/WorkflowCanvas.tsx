@@ -5,7 +5,6 @@ import {
   ReactFlow,
   Background,
   BackgroundVariant,
-  Controls,
   SelectionMode,
   type Connection,
   type Edge,
@@ -18,9 +17,10 @@ import { nodeTypes } from './nodes'
 import { AnimatedEdge } from './edges/AnimatedEdge'
 import { MiniMapPanel } from './MiniMapPanel'
 import { CanvasToolbar } from './CanvasToolbar'
+import { CanvasBottomBar } from './CanvasBottomBar'
 import { useCanvasStore } from '../../lib/store/canvas.store'
 import { hasCycle } from '../../lib/dag/topological-sort'
-import { HandleType } from '../../lib/types/handles'
+import { inferHandleType } from '../../lib/types/handles'
 import type { NodeData } from '../../lib/types/nodes'
 import { NodeKind } from '../../lib/types/nodes'
 
@@ -32,14 +32,6 @@ interface WorkflowCanvasProps {
   workflowId: string
 }
 
-function inferHandleType(handleId: string | null | undefined): HandleType {
-  if (!handleId) return HandleType.TEXT
-  if (handleId.includes('image')) return HandleType.IMAGE
-  if (handleId.includes('video')) return HandleType.VIDEO
-  if (handleId.includes('audio')) return HandleType.AUDIO
-  if (handleId.includes('file')) return HandleType.FILE
-  return HandleType.TEXT
-}
 
 export function WorkflowCanvas({ workflowId }: WorkflowCanvasProps) {
   const {
@@ -52,6 +44,7 @@ export function WorkflowCanvas({ workflowId }: WorkflowCanvasProps) {
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const setIsSaving = useCanvasStore((s) => s.setIsSaving)
+  const selectMode = useCanvasStore((s) => s.selectMode)
 
   const saveWorkflow = useCallback(async () => {
     setIsSaving(true)
@@ -151,6 +144,8 @@ export function WorkflowCanvas({ workflowId }: WorkflowCanvasProps) {
         isValidConnection={isValidConnection}
         onBeforeDelete={onBeforeDelete}
         selectionMode={SelectionMode.Partial}
+        selectionOnDrag={selectMode}
+        panOnDrag={selectMode ? [1, 2] : [0, 1, 2]}
         defaultEdgeOptions={{ type: 'animatedEdge' }}
         fitView
         fitViewOptions={{ padding: 0.15 }}
@@ -167,9 +162,9 @@ export function WorkflowCanvas({ workflowId }: WorkflowCanvasProps) {
           gap={24}
           size={1.2}
         />
-        <Controls className="!bg-white !border-gray-200 !rounded-lg !shadow-sm" showInteractive={false} />
         <MiniMapPanel />
         <CanvasToolbar onSave={saveWorkflow} />
+        <CanvasBottomBar />
       </ReactFlow>
     </div>
   )

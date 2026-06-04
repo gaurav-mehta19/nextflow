@@ -9,10 +9,9 @@ import { Button } from '../../../../../components/ui/Button'
 import { useCanvasStore } from '../../../../../lib/store/canvas.store'
 import { useRunStore } from '../../../../../lib/store/run.store'
 import { buildSampleWorkflow } from '../../../../../lib/sample-workflow'
-import { UserButton } from '@clerk/nextjs'
 import { ArrowLeft, Play, History, Workflow, ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { useState } from 'react'
-import type { NodeData } from '../../../../../lib/types/nodes'
+import { NodeKind, type NodeData } from '../../../../../lib/types/nodes'
 
 interface WorkflowResponse {
   workflow: {
@@ -40,7 +39,10 @@ export default function CanvasPage() {
   const nameInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    return () => { resetCanvas() }
+    return () => {
+      resetCanvas()
+      resetRun()
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -110,7 +112,10 @@ export default function CanvasPage() {
       collectedValues[field.id] = field.value ?? ''
     }
 
-    let runNodes = nodes
+    const executableNodes = nodes.filter(
+      (n) => (n.data as NodeData)?.kind !== NodeKind.STICKY_NOTE,
+    )
+    let runNodes = executableNodes
     let runEdges = edges
     let scope: 'full' | 'partial' | 'single' = 'full'
 
@@ -132,7 +137,7 @@ export default function CanvasPage() {
           }
         }
       }
-      runNodes = nodes.filter((n) => included.has(n.id))
+      runNodes = executableNodes.filter((n) => included.has(n.id))
       runEdges = edges.filter((e) => included.has(e.source) && included.has(e.target))
       scope = seedIds.length === 1 ? 'single' : 'partial'
     }
@@ -240,10 +245,6 @@ export default function CanvasPage() {
             History
             {historyOpen ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
           </button>
-
-          <div className="ml-1">
-            <UserButton afterSignOutUrl="/sign-in" />
-          </div>
         </div>
       </header>
 

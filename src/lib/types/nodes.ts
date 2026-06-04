@@ -3,9 +3,10 @@ export enum NodeKind {
   RESPONSE       = 'response',
   CROP_IMAGE     = 'cropImage',
   GEMINI         = 'gemini',
+  STICKY_NOTE    = 'stickyNote',
 }
 
-export type FieldType = 'text_field' | 'image_field' | 'video_field' | 'audio_field' | 'file_field'
+export type FieldType = 'text_field' | 'number_field' | 'image_field' | 'video_field' | 'audio_field' | 'file_field'
 
 export interface FieldDef {
   id: string
@@ -48,8 +49,14 @@ export interface ResponseData extends Record<string, unknown> {
   kind: NodeKind.RESPONSE
 }
 
+export interface StickyNoteData extends Record<string, unknown> {
+  kind: NodeKind.STICKY_NOTE
+  text: string
+}
+
 export type NodeData =
   | RequestInputsData
   | CropImageData
   | GeminiData
   | ResponseData
+  | StickyNoteData
