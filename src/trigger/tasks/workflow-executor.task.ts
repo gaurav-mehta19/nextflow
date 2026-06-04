@@ -1,4 +1,4 @@
-import { task } from '@trigger.dev/sdk'
+import { task, batch } from '@trigger.dev/sdk'
 import type { Edge } from '@xyflow/react'
 import { prisma } from '../../lib/db/client'
 import { topologicalSort } from '../../lib/dag/topological-sort'
@@ -63,6 +63,82 @@ function resolveInputs(
   return resolvedInputs
 }
 
+function pickNumber(
+  resolvedInputs: Record<string, unknown>,
+  handleId: string,
+  fallback: number,
+): number {
+  const v = resolvedInputs[handleId]
+  if (v === undefined || v === null || v === '') return fallback
+  const n = typeof v === 'number' ? v : Number(v)
+  return Number.isFinite(n) ? n : fallback
+}
+
+async function processCropResult(
+  runId: string,
+  nodeId: string,
+  nodeOutputs: Map<string, Record<string, unknown>>,
+  run: { ok: boolean; output?: { outputUrl?: string | null }; error?: unknown },
+): Promise<void> {
+  if (run.ok) {
+    const outputData = { 'output-image': run.output?.outputUrl ?? null }
+    nodeOutputs.set(nodeId, outputData)
+    await prisma.nodeRun.updateMany({
+      where: { runId, nodeId },
+      data: {
+        status: 'SUCCESS',
+        finishedAt: new Date(),
+        outputData: outputData as Prisma.InputJsonValue,
+      },
+    })
+  } else {
+    await prisma.nodeRun.updateMany({
+      where: { runId, nodeId },
+      data: {
+        status: 'FAILED',
+        finishedAt: new Date(),
+        errorMsg: String(run.error ?? 'crop-image task failed'),
+      },
+    })
+  }
+}
+
+async function processGeminiResult(
+  runId: string,
+  nodeId: string,
+  nodeOutputs: Map<string, Record<string, unknown>>,
+  payloadImageUrls: string[] | undefined,
+  run: { ok: boolean; output?: { response?: string }; error?: unknown },
+): Promise<void> {
+  if (run.ok) {
+    // Persist the imageUrls Gemini received so the UI can render thumbnails
+    // alongside the text (Gemini can't generate images, only reference them
+    // by "Image 1", "Image 2", etc.)
+    const outputData = {
+      response: run.output?.response ?? '',
+      imageUrls: payloadImageUrls ?? [],
+    }
+    nodeOutputs.set(nodeId, outputData)
+    await prisma.nodeRun.updateMany({
+      where: { runId, nodeId },
+      data: {
+        status: 'SUCCESS',
+        finishedAt: new Date(),
+        outputData: outputData as Prisma.InputJsonValue,
+      },
+    })
+  } else {
+    await prisma.nodeRun.updateMany({
+      where: { runId, nodeId },
+      data: {
+        status: 'FAILED',
+        finishedAt: new Date(),
+        errorMsg: String(run.error ?? 'gemini-inference task failed'),
+      },
+    })
+  }
+}
+
 export const workflowExecutorTask = task({
   id: 'workflow-executor',
   maxDuration: 600,
@@ -73,6 +149,7 @@ export const workflowExecutorTask = task({
     const graphEdges = edges.map((e) => ({ source: e.source, target: e.target }))
     const levels = topologicalSort(graphNodes, graphEdges)
 
+    const nodeById = new Map(nodes.map((n) => [n.id, n]))
     const nodeOutputs = new Map<string, Record<string, unknown>>()
     const incomingEdges = new Map<string, Edge[]>()
     for (const edge of edges) {
@@ -95,9 +172,21 @@ export const workflowExecutorTask = task({
       const cropBatch: CropBatchItem[] = []
       const geminiBatch: GeminiBatchItem[] = []
 
+      // Pre-fetch NodeRuns for this level so we can build batch payloads
+      // without an await-per-node round-trip.
+      const levelNodeRuns = await prisma.nodeRun.findMany({
+        where: { runId, nodeId: { in: level } },
+      })
+      const nodeRunByNodeId = new Map(levelNodeRuns.map((nr) => [nr.nodeId, nr]))
+
+      // Collect RUNNING updates so we can flip every same-level executable node
+      // in a single atomic transaction — the history poll then sees them glow
+      // together instead of in sequence.
+      const runningUpdates: Array<{ nodeId: string; inputData: unknown }> = []
+
       // Phase 1: handle local-only nodes (Request-Inputs, Response) and prepare batch items
       for (const nodeId of level) {
-        const node = nodes.find((n) => n.id === nodeId)
+        const node = nodeById.get(nodeId)
         if (!node) continue
 
         if (node.data.kind === NodeKind.REQUEST_INPUTS) {
@@ -144,17 +233,9 @@ export const workflowExecutorTask = task({
           continue
         }
 
-        // Executable nodes: resolve inputs, mark RUNNING, queue into a batch
+        // Executable nodes: resolve inputs and queue into a batch (status flip happens below)
         const resolvedInputs = resolveInputs(nodeId, incomingEdges, nodeOutputs)
-        await prisma.nodeRun.updateMany({
-          where: { runId, nodeId },
-          data: {
-            status: 'RUNNING',
-            startedAt: new Date(),
-            inputData: resolvedInputs as Prisma.InputJsonValue,
-          },
-        })
-        const nodeRun = await prisma.nodeRun.findFirst({ where: { runId, nodeId } })
+        const nodeRun = nodeRunByNodeId.get(nodeId)
         if (!nodeRun) continue
 
         if (node.data.kind === NodeKind.CROP_IMAGE) {
@@ -174,13 +255,14 @@ export const workflowExecutorTask = task({
             nodeId,
             payload: {
               imageUrl,
-              xPct: node.data.xPct,
-              yPct: node.data.yPct,
-              wPct: node.data.wPct,
-              hPct: node.data.hPct,
+              xPct: pickNumber(resolvedInputs, 'input-x-number', node.data.xPct),
+              yPct: pickNumber(resolvedInputs, 'input-y-number', node.data.yPct),
+              wPct: pickNumber(resolvedInputs, 'input-w-number', node.data.wPct),
+              hPct: pickNumber(resolvedInputs, 'input-h-number', node.data.hPct),
               nodeRunId: nodeRun.id,
             },
           })
+          runningUpdates.push({ nodeId, inputData: resolvedInputs })
         } else if (node.data.kind === NodeKind.GEMINI) {
           const prompt = (resolvedInputs['prompt'] ?? node.data.prompt ?? '') as string
           const systemPromptOverride = resolvedInputs['system-prompt'] as string | undefined
@@ -200,76 +282,92 @@ export const workflowExecutorTask = task({
               nodeRunId: nodeRun.id,
             },
           })
+          runningUpdates.push({ nodeId, inputData: resolvedInputs })
         }
       }
 
-      // Phase 2: run crop batch (parallel within the batch)
-      if (cropBatch.length > 0) {
+      // Phase 1b: flip every same-level executable node to RUNNING in one atomic
+      // transaction so the history poll renders them glowing simultaneously.
+      if (runningUpdates.length > 0) {
+        const now = new Date()
+        await prisma.$transaction(
+          runningUpdates.map((u) =>
+            prisma.nodeRun.updateMany({
+              where: { runId, nodeId: u.nodeId },
+              data: {
+                status: 'RUNNING',
+                startedAt: now,
+                inputData: u.inputData as Prisma.InputJsonValue,
+              },
+            }),
+          ),
+        )
+      }
+
+      // Phase 2: kick off every executable in the level concurrently.
+      // - Mixed crop+gemini level → use batch.triggerByTaskAndWait so they
+      //   actually start at the same instant.
+      // - Single task-type level → use that task's batchTriggerAndWait. The
+      //   cross-task helper has been observed to hang on single-item inputs.
+      const isMixed = cropBatch.length > 0 && geminiBatch.length > 0
+
+      if (isMixed) {
+        type CombinedItem =
+          | { kind: 'crop'; nodeId: string; payload: CropBatchItem['payload'] }
+          | { kind: 'gemini'; nodeId: string; payload: GeminiBatchItem['payload'] }
+
+        const combined: CombinedItem[] = [
+          ...cropBatch.map((c) => ({ kind: 'crop' as const, nodeId: c.nodeId, payload: c.payload })),
+          ...geminiBatch.map((g) => ({ kind: 'gemini' as const, nodeId: g.nodeId, payload: g.payload })),
+        ]
+
+        const result = await batch.triggerByTaskAndWait(
+          combined.map((item) =>
+            item.kind === 'crop'
+              ? { task: cropImageTask, payload: item.payload }
+              : { task: geminiTask, payload: item.payload },
+          ),
+        )
+
+        for (let i = 0; i < combined.length; i++) {
+          const item = combined[i]
+          const run = result.runs[i]
+          if (item.kind === 'crop') {
+            await processCropResult(
+              runId,
+              item.nodeId,
+              nodeOutputs,
+              run as Parameters<typeof processCropResult>[3],
+            )
+          } else {
+            await processGeminiResult(
+              runId,
+              item.nodeId,
+              nodeOutputs,
+              item.payload.imageUrls,
+              run as Parameters<typeof processGeminiResult>[4],
+            )
+          }
+        }
+      } else if (cropBatch.length > 0) {
         const result = await cropImageTask.batchTriggerAndWait(
-          cropBatch.map((c) => ({ payload: c.payload }))
+          cropBatch.map((c) => ({ payload: c.payload })),
         )
         for (let i = 0; i < cropBatch.length; i++) {
-          const item = cropBatch[i]
-          const run = result.runs[i]
-          if (run.ok) {
-            const outputData = { 'output-image': run.output.outputUrl ?? null }
-            nodeOutputs.set(item.nodeId, outputData)
-            await prisma.nodeRun.updateMany({
-              where: { runId, nodeId: item.nodeId },
-              data: {
-                status: 'SUCCESS',
-                finishedAt: new Date(),
-                outputData: outputData as Prisma.InputJsonValue,
-              },
-            })
-          } else {
-            await prisma.nodeRun.updateMany({
-              where: { runId, nodeId: item.nodeId },
-              data: {
-                status: 'FAILED',
-                finishedAt: new Date(),
-                errorMsg: String(run.error ?? 'crop-image task failed'),
-              },
-            })
-          }
+          await processCropResult(runId, cropBatch[i].nodeId, nodeOutputs, result.runs[i])
         }
-      }
-
-      // Phase 3: run gemini batch (parallel within the batch)
-      if (geminiBatch.length > 0) {
+      } else if (geminiBatch.length > 0) {
         const result = await geminiTask.batchTriggerAndWait(
-          geminiBatch.map((g) => ({ payload: g.payload }))
+          geminiBatch.map((g) => ({ payload: g.payload })),
         )
         for (let i = 0; i < geminiBatch.length; i++) {
-          const item = geminiBatch[i]
-          const run = result.runs[i]
-          if (run.ok) {
-            // Persist the imageUrls Gemini received so the UI can render
-            // thumbnails alongside the text (Gemini can't generate images,
-            // only reference them by "Image 1", "Image 2", etc.)
-            const outputData = {
-              response: run.output.response ?? '',
-              imageUrls: item.payload.imageUrls ?? [],
-            }
-            nodeOutputs.set(item.nodeId, outputData)
-            await prisma.nodeRun.updateMany({
-              where: { runId, nodeId: item.nodeId },
-              data: {
-                status: 'SUCCESS',
-                finishedAt: new Date(),
-                outputData: outputData as Prisma.InputJsonValue,
-              },
-            })
-          } else {
-            await prisma.nodeRun.updateMany({
-              where: { runId, nodeId: item.nodeId },
-              data: {
-                status: 'FAILED',
-                finishedAt: new Date(),
-                errorMsg: String(run.error ?? 'gemini-inference task failed'),
-              },
-            })
-          }
+          await processGeminiResult(
+            runId,
+            geminiBatch[i].nodeId,
+            nodeOutputs,
+            geminiBatch[i].payload.imageUrls,
+            result.runs[i],
+          )
         }
       }
     }

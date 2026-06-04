@@ -59,24 +59,24 @@
   pointer-events: none;
 }
 
-/* Running node — vibrant animated purple */
+/* Running node — soft animated purple, still legible from across the canvas */
 @keyframes purple-pulse {
   0%, 100% {
     box-shadow:
-      0 0 0 0 rgba(168, 85, 247, 0.7),
-      0 0 28px 8px rgba(168, 85, 247, 0.5);
-    border-color: rgb(168, 85, 247);
+      0 0 0 0 rgba(192, 132, 252, 0.35),
+      0 0 22px 6px rgba(192, 132, 252, 0.22);
+    border-color: rgb(192, 132, 252);
   }
   50% {
     box-shadow:
-      0 0 0 14px rgba(168, 85, 247, 0),
-      0 0 40px 16px rgba(168, 85, 247, 0.25);
-    border-color: rgb(124, 58, 237);
+      0 0 0 10px rgba(192, 132, 252, 0),
+      0 0 32px 12px rgba(192, 132, 252, 0.1);
+    border-color: rgb(167, 139, 250);
   }
 }
 .node-running {
-  animation: purple-pulse 1.4s ease-in-out infinite;
-  border-color: rgb(168, 85, 247) !important;
+  animation: purple-pulse 1.6s ease-in-out infinite;
+  border-color: rgb(192, 132, 252) !important;
   border-width: 2px !important;
   border-style: dashed !important;
 }
