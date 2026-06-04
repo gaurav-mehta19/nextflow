@@ -5,7 +5,6 @@ import { WorkflowCard } from '../../../components/dashboard/WorkflowCard'
 import { CreateWorkflowButton } from '../../../components/dashboard/CreateWorkflowButton'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
-import { UserButton } from '@clerk/nextjs'
 import { Workflow, Upload, AlertTriangle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -94,18 +93,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800">
-      <header className="border-b border-gray-200 px-6 py-4 flex items-center bg-white">
-        <div className="flex items-center gap-2">
-          <Workflow size={22} className="text-indigo-500" />
-          <span className="font-bold text-gray-900 text-lg">NextFlow</span>
-        </div>
-        <div className="ml-auto flex items-center">
-          <UserButton afterSignOutUrl="/sign-in" />
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-6 py-8">
+    <>
+      <main className="flex-1 max-w-6xl mx-auto px-6 py-8 w-full">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Workflows</h1>
@@ -129,7 +118,8 @@ export default function DashboardPage() {
             >
               <Upload size={14} /> Import
             </button>
-            <CreateWorkflowButton />
+            <CreateWorkflowButton variant="sample" />
+            <CreateWorkflowButton variant="blank" />
           </div>
         </div>
 
@@ -155,7 +145,10 @@ export default function DashboardPage() {
             <p className="text-gray-400 text-sm mb-6 max-w-xs">
               Create your first workflow to start building LLM-powered automations
             </p>
-            <CreateWorkflowButton />
+            <div className="flex items-center gap-2">
+              <CreateWorkflowButton variant="sample" />
+              <CreateWorkflowButton variant="blank" />
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -199,6 +192,6 @@ export default function DashboardPage() {
           </Button>
         </div>
       </Modal>
-    </div>
+    </>
   )
 }

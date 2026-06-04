@@ -134,3 +134,33 @@ export function buildSampleWorkflow(): { nodes: Node<NodeData>[]; edges: Edge[] 
 
   return { nodes, edges }
 }
+
+/**
+ * Minimal starter — just Request-Inputs (with one empty text field) and a
+ * Response node. The user wires the rest themselves.
+ */
+export function buildBlankWorkflow(): { nodes: Node<NodeData>[]; edges: Edge[] } {
+  const nodes: Array<Node<RequestInputsData> | Node<ResponseData>> = [
+    {
+      id: 'request-inputs',
+      type: NodeKind.REQUEST_INPUTS,
+      position: { x: 60, y: 200 },
+      data: {
+        kind: NodeKind.REQUEST_INPUTS,
+        fields: [
+          { id: 'text_field', label: 'text_field', type: 'text_field', value: '' },
+        ],
+      },
+      deletable: false,
+    },
+    {
+      id: 'response',
+      type: NodeKind.RESPONSE,
+      position: { x: 700, y: 200 },
+      data: { kind: NodeKind.RESPONSE },
+      deletable: false,
+    },
+  ]
+
+  return { nodes, edges: [] }
+}
