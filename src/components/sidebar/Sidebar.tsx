@@ -3,7 +3,8 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { UserButton, useUser } from '@clerk/nextjs'
+import { UserButton, useUser, useClerk } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
 import {
   Plus,
   Search,
@@ -18,6 +19,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
+  LogOut,
   type LucideIcon,
 } from 'lucide-react'
 import { useSidebarStore } from '../../lib/store/sidebar.store'
@@ -190,6 +192,14 @@ interface FooterProps {
 }
 
 function Footer({ collapsed, userName }: FooterProps) {
+  const { signOut } = useClerk()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push('/sign-in')
+  }
+
   return (
     <div
       className={`flex flex-col gap-2 border-t border-gray-200/70 ${
@@ -245,9 +255,18 @@ function Footer({ collapsed, userName }: FooterProps) {
                 }}
               />
             </div>
-            <span className="text-sm font-semibold text-gray-900 truncate">
+            <span className="flex-1 min-w-0 text-sm font-semibold text-gray-900 truncate">
               {userName ?? 'Account'}
             </span>
+            <button
+              type="button"
+              onClick={() => { void handleSignOut() }}
+              aria-label="Sign out"
+              title="Sign out"
+              className="shrink-0 flex items-center justify-center w-8 h-8 rounded-md text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <LogOut size={16} strokeWidth={1.75} />
+            </button>
           </div>
         </>
       )}
