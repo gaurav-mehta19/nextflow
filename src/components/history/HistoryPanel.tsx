@@ -37,14 +37,17 @@ export function HistoryPanel({ workflowId }: HistoryPanelProps) {
     let interval: ReturnType<typeof setInterval> | null = null
 
     const poll = async () => {
-      const res = await fetch(`/api/runs/${activeRunId}`)
+      const res = await fetch(`/api/workflows/${workflowId}/runs`)
       if (!res.ok || cancelled) return
-      const data = await res.json() as { run: Run }
-      const { run } = data
+      const data = await res.json() as { runs: Run[] }
+      setRuns(data.runs)
 
-      if (run.nodeRuns) {
+      const active = data.runs.find((r) => r.id === activeRunId)
+      if (!active) return
+
+      if (active.nodeRuns) {
         updateFromRunData(
-          run.nodeRuns.map((nr) => ({
+          active.nodeRuns.map((nr) => ({
             nodeId: nr.nodeId,
             status: nr.status,
             outputData: nr.outputData,
@@ -55,21 +58,20 @@ export function HistoryPanel({ workflowId }: HistoryPanelProps) {
         )
       }
 
-      if (run.status !== 'RUNNING') {
-        setRunStatus(run.status === 'SUCCESS' ? 'success' : 'failed')
+      if (active.status !== 'RUNNING') {
+        setRunStatus(active.status === 'SUCCESS' ? 'success' : 'failed')
         if (interval) clearInterval(interval)
-        void fetchRuns()
         setActiveRun(null)
       }
     }
 
+    void poll()
     interval = setInterval(() => { void poll() }, 2000)
     return () => {
       cancelled = true
       if (interval) clearInterval(interval)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeRunId, updateFromRunData, setRunStatus, setActiveRun])
+  }, [activeRunId, workflowId, updateFromRunData, setRunStatus, setActiveRun])
 
   useEffect(() => {
     void fetchRuns()
