@@ -173,3 +173,24 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
+
+/* Animated edges — marching-ants effect that flows from source → target.
+   The dash pattern is small and the cadence is gentle so it reads as
+   "data flowing" without being distracting against a busy canvas. */
+@keyframes nf-edge-march {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+
+.nf-edge-flow {
+  stroke-dasharray: 6 4;
+  animation: nf-edge-march 1.4s linear infinite;
+}
+
+.nf-edge-flow--selected {
+  /* Slightly faster + tighter dash when the user has selected the edge,
+     to highlight it among unselected siblings. */
+  stroke-dasharray: 8 4;
+  animation-duration: 0.9s;
+}

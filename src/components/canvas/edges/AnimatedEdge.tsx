@@ -28,10 +28,15 @@ export function AnimatedEdge({
 
   const color = selected ? '#6366f1' : HANDLE_COLORS[inferHandleType(sourceHandle)]
 
+  // Render the path manually instead of <BaseEdge> so we can apply the
+  // marching-ants animation class. BaseEdge doesn't forward className to the
+  // underlying path; raw <path> gives us full control.
   return (
-    <BaseEdge
+    <path
       id={id}
-      path={edgePath}
+      d={edgePath}
+      fill="none"
+      className={`nf-edge-flow ${selected ? 'nf-edge-flow--selected' : ''}`}
       style={{
         stroke: color,
         strokeWidth: selected ? 2.5 : 2,
