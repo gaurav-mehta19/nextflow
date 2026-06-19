@@ -28,8 +28,6 @@ const FIELD_CONFIG: Record<FieldType, {
 import { useCanvasStore } from '../../../lib/store/canvas.store'
 import { useRunStore } from '../../../lib/store/run.store'
 
-// Drop any edges that originated from the deleted field's handle so
-// downstream nodes don't keep a phantom incoming connection.
 function pruneEdgesForField(nodeId: string, fieldId: string) {
   const { edges, setEdges } = useCanvasStore.getState()
   setEdges(edges.filter((e) => !(e.source === nodeId && e.sourceHandle === fieldId)))
@@ -58,10 +56,7 @@ function RequestInputsNodeComponent({ id, data }: Props) {
         audio_field: 'Audio Field',
         file_field: 'File Field',
       }
-      // ID must encode the type so the canvas handle-type checker
-      // (which substring-matches handleId for "image"/"video"/etc.)
-      // correctly types this source handle. Without this, image fields
-      // would be inferred as TEXT and couldn't connect to image targets.
+
       const newField: FieldDef = {
         id: `${type}-${crypto.randomUUID()}`,
         label: labelMap[type],
@@ -198,7 +193,7 @@ function RequestInputsNodeComponent({ id, data }: Props) {
                     </div>
                   ) : field.value ? (
                     field.type === 'image_field' ? (
-                      // eslint-disable-next-line @next/next/no-img-element
+
                       <img src={field.value} alt="preview" className="max-h-28 mx-auto rounded object-contain" />
                     ) : (
                       <div className="flex items-center justify-center gap-2 text-sm text-gray-600 py-1">

@@ -43,7 +43,7 @@ export default function CanvasPage() {
       resetCanvas()
       resetRun()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [])
 
   useEffect(() => {
@@ -72,13 +72,12 @@ export default function CanvasPage() {
       }
     }
     void load()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [workflowId])
 
   useEffect(() => {
     if (runStatus === 'running') {
-      // Reflect an in-progress run picked up on revisit so the Run
-      // button stays disabled until it actually finishes.
+
       setRunning(true)
     } else if (runStatus === 'success') {
       setToast('Workflow completed successfully!')
@@ -129,7 +128,7 @@ export default function CanvasPage() {
         setRunning(false)
         return
       }
-      // Walk upstream to include all ancestors so dependencies resolve
+
       const included = new Set<string>(seedIds)
       let changed = true
       while (changed) {
@@ -170,7 +169,6 @@ export default function CanvasPage() {
 
   return (
     <div className="h-screen flex flex-col bg-white">
-      {/* Header */}
       <header className="flex items-center gap-3 px-5 h-14 border-b border-gray-100 bg-white/95 backdrop-blur-md z-20 flex-shrink-0">
         <button
           onClick={() => router.push('/dashboard')}

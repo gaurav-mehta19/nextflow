@@ -32,7 +32,6 @@ interface WorkflowCanvasProps {
   workflowId: string
 }
 
-
 export function WorkflowCanvas({ workflowId }: WorkflowCanvasProps) {
   const {
     nodes,
@@ -60,9 +59,6 @@ export function WorkflowCanvas({ workflowId }: WorkflowCanvasProps) {
     }
   }, [workflowId, nodes, edges, setIsSaving])
 
-  // Skip auto-save until the workflow has actually loaded from the API.
-  // Otherwise on remount the empty initial store can race the fetch and
-  // PATCH an empty `nodes: []` into the DB, wiping the workflow.
   useEffect(() => {
     if (!loaded) return
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)

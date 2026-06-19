@@ -60,13 +60,11 @@ export function WorkflowCard({
 
   return (
     <div className="group bg-white border border-gray-200 hover:border-indigo-300 hover:shadow-lg rounded-2xl overflow-hidden transition-all flex flex-col">
-      {/* Preview area — click to open */}
       <div
         onClick={open}
         className="h-44 bg-gradient-to-br from-gray-50 to-indigo-50/30 border-b border-gray-100 cursor-pointer overflow-hidden relative group/preview"
       >
         <WorkflowPreview nodes={nodes} edges={edges} />
-        {/* Hover overlay with "Open" hint */}
         <div className="absolute inset-0 bg-indigo-600/0 group-hover/preview:bg-indigo-600/5 transition-colors flex items-center justify-center">
           <div className="opacity-0 group-hover/preview:opacity-100 transition-opacity bg-white shadow-md rounded-full px-3 py-1.5 flex items-center gap-1 text-xs font-medium text-indigo-700">
             <ArrowUpRight size={14} />
@@ -75,9 +73,7 @@ export function WorkflowCard({
         </div>
       </div>
 
-      {/* Body */}
       <div className="p-4 flex-1 flex flex-col gap-3">
-        {/* Name + status badge */}
         <div className="flex items-start justify-between gap-2 min-h-[24px]">
           {editing ? (
             <div className="flex items-center gap-1 flex-1 min-w-0">
@@ -110,12 +106,10 @@ export function WorkflowCard({
           )}
         </div>
 
-        {/* Metadata */}
         <p className="text-xs text-gray-400 -mt-2">
           Last edited {formatDistanceToNow(updatedAt)} · {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'}
         </p>
 
-        {/* Actions row */}
         <div className="flex items-center gap-1 mt-auto pt-2 border-t border-gray-100">
           <button
             onClick={open}

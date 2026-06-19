@@ -12,9 +12,8 @@ export async function POST() {
     return NextResponse.json({ error: 'Transloadit not configured' }, { status: 500 })
   }
 
-  // Minimal assembly: just rehost the upload so we get a public ssl_url back.
-  // /upload/handle is a no-op robot that accepts uploads; the resulting URL
-  // is publicly fetchable for ~24h (long enough for any workflow run).
+
+
   const params = {
     auth: {
       key,

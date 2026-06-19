@@ -6,9 +6,9 @@ import { HandleType, HANDLE_COLORS } from '../../../lib/types/handles'
 interface TypedHandleProps extends Omit<HandleProps, 'id'> {
   id: string
   handleType: HandleType
-  /** Optional — used only as the native `title` tooltip on hover. Never rendered on canvas. */
+
   label?: string
-  /** Reserved for future styling; no visual effect at the moment. */
+
   connected?: boolean
 }
 

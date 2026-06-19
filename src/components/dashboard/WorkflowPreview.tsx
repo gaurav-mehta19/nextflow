@@ -17,10 +17,10 @@ interface WorkflowPreviewProps {
 }
 
 const NODE_COLORS: Record<string, string> = {
-  requestInputs: '#818cf8', // indigo-400
-  cropImage: '#60a5fa',     // blue-400
-  gemini: '#c084fc',        // purple-400
-  response: '#34d399',      // emerald-400
+  requestInputs: '#818cf8',
+  cropImage: '#60a5fa',
+  gemini: '#c084fc',
+  response: '#34d399',
 }
 
 const NODE_W = 340
@@ -50,7 +50,6 @@ export function WorkflowPreview({ nodes, edges }: WorkflowPreviewProps) {
       className="w-full h-full block"
       preserveAspectRatio="xMidYMid meet"
     >
-      {/* Edges first so they render under nodes */}
       {edges.map((edge, i) => {
         const src = nodes.find((n) => n.id === edge.source)
         const tgt = nodes.find((n) => n.id === edge.target)
@@ -72,7 +71,6 @@ export function WorkflowPreview({ nodes, edges }: WorkflowPreviewProps) {
         )
       })}
 
-      {/* Nodes */}
       {nodes.map((node) => {
         const color = NODE_COLORS[node.type ?? ''] ?? '#9ca3af'
         return (

@@ -20,8 +20,6 @@ import type { NodeData } from '../../lib/types/nodes'
 
 const zoomSelector = (s: { transform: [number, number, number] }) => s.transform[2]
 
-// onSave is still accepted but unused — autosave handles persistence.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function CanvasToolbar(_props: { onSave?: () => void }) {
   const { zoomIn, zoomOut, zoomTo, fitView, getNodes } = useReactFlow<Node<NodeData>>()
   const zoom = useStore(zoomSelector)

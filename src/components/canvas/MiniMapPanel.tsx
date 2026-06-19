@@ -10,7 +10,6 @@ const PANEL_SHADOW =
 export function MiniMapPanel() {
   const [open, setOpen] = useState(false)
 
-  // Collapsed — just a compact rounded button at bottom-right
   if (!open) {
     return (
       <button
@@ -31,7 +30,6 @@ export function MiniMapPanel() {
     )
   }
 
-  // Expanded — the React Flow MiniMap + an inset close button
   return (
     <>
       <MiniMap

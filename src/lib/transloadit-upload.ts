@@ -7,12 +7,11 @@ interface AssemblyStatus {
 }
 
 export async function uploadToTransloadit(file: File): Promise<string> {
-  // 1. Get a server-signed assembly so we never expose the Transloadit secret to the browser.
+
   const signRes = await fetch('/api/transloadit/sign', { method: 'POST' })
   if (!signRes.ok) throw new Error('Failed to sign Transloadit assembly')
   const { params, signature } = (await signRes.json()) as { params: string; signature: string }
 
-  // 2. POST the file directly to Transloadit.
   const form = new FormData()
   form.append('params', params)
   form.append('signature', signature)
@@ -33,7 +32,6 @@ export async function uploadToTransloadit(file: File): Promise<string> {
     assembly_ssl_url: string
   } & AssemblyStatus
 
-  // The initial response may already be complete if processing is instant.
   if (assembly.ok === 'ASSEMBLY_COMPLETED') {
     const url = pickResultUrl(assembly)
     if (url) return url
@@ -42,7 +40,6 @@ export async function uploadToTransloadit(file: File): Promise<string> {
     throw new Error(`Transloadit error: ${assembly.error}${assembly.message ? ` — ${assembly.message}` : ''}`)
   }
 
-  // 3. Poll until complete.
   for (let i = 0; i < 60; i++) {
     await new Promise((r) => setTimeout(r, 1500))
     const statusRes = await fetch(assembly.assembly_ssl_url)

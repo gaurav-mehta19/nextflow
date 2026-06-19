@@ -16,11 +16,6 @@ export const HANDLE_COLORS: Record<HandleType, string> = {
   [HandleType.NUMBER]: '#ec4899',
 }
 
-/**
- * Derive the handle's data type from its ID. Handle IDs encode the type via
- * substring (e.g. `image_field-…`, `input-x-number`), so adding a new
- * HandleType only requires extending this function plus HANDLE_COLORS.
- */
 export function inferHandleType(handleId: string | null | undefined): HandleType {
   if (!handleId) return HandleType.TEXT
   if (handleId.includes('number')) return HandleType.NUMBER

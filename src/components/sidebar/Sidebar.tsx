@@ -53,9 +53,6 @@ export function Sidebar() {
   const pathname = usePathname()
   const { user } = useUser()
 
-  // Rehydrate the persisted collapse state after mount so SSR + first client
-  // paint match (avoids a flash). `skipHydration: true` on the store makes
-  // this explicit handoff necessary.
   useEffect(() => {
     void useSidebarStore.persist.rehydrate()
   }, [])
@@ -146,7 +143,6 @@ function Logo() {
     </Link>
   )
 }
-
 
 interface NavLinkProps {
   item: NavItem

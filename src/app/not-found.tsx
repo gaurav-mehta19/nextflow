@@ -14,8 +14,7 @@ export default function NotFound() {
   useEffect(() => {
     const deadline = Date.now() + REDIRECT_SECONDS * 1000
     const tick = setInterval(() => {
-      // Derive from the deadline so a throttled/backgrounded tab can't drift
-      // below 0 between paints.
+
       const remainingMs = Math.max(0, deadline - Date.now())
       setSecondsLeft(Math.ceil(remainingMs / 1000))
     }, 250)

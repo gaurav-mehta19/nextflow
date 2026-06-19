@@ -25,10 +25,6 @@ export function HistoryPanel({ workflowId }: HistoryPanelProps) {
         const data = await res.json() as { runs: Run[] }
         setRuns(data.runs)
 
-        // Prefer a still-RUNNING run (resume tracking + glow), else
-        // fall back to the most recent completed run so the canvas
-        // shows last results (Gemini text, cropped images, etc.) on
-        // revisit instead of blank nodes.
         const runningRun = data.runs.find((r) => r.status === 'RUNNING')
         const seedRun = runningRun ?? data.runs[0]
         if (seedRun?.nodeRuns) {
@@ -98,7 +94,7 @@ export function HistoryPanel({ workflowId }: HistoryPanelProps) {
 
   useEffect(() => {
     void fetchRuns()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [workflowId])
 
   return (

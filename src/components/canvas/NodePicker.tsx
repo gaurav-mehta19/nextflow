@@ -91,7 +91,7 @@ export function NodePicker({ open, onClose }: NodePickerProps) {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Element)) onClose()
     }
     window.addEventListener('keydown', handler)
-    // Slight delay so the click that opened us doesn't immediately close it
+
     const t = setTimeout(() => window.addEventListener('mousedown', click), 0)
     return () => {
       clearTimeout(t)

@@ -18,8 +18,7 @@ export const useSidebarStore = create<SidebarState>()(
       name: 'nextflow:sidebar',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ collapsed: state.collapsed }),
-      // Skip auto-hydration so SSR and client agree on the initial paint;
-      // the Sidebar triggers rehydration via useEffect after mount.
+
       skipHydration: true,
     },
   ),

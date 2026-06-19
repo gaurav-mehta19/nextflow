@@ -35,9 +35,6 @@ export function CreateWorkflowButton({ variant = 'sample' }: Props) {
       if (!res.ok) throw new Error('Failed to create workflow')
       const { workflow } = await res.json() as { workflow: { id: string } }
 
-      // For the blank starter, pre-seed the workflow with just Request-Inputs +
-      // Response before navigating. That way the canvas page sees a non-empty
-      // workflow and skips the sample-auto-populate branch.
       if (variant === 'blank') {
         const { nodes, edges } = buildBlankWorkflow()
         const patch = await fetch(`/api/workflows/${workflow.id}`, {

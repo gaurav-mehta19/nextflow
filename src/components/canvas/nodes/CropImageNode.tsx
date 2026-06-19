@@ -74,8 +74,6 @@ function CropImageNodeComponent({ id, data }: Props) {
     [id, updateNodeData]
   )
 
-  // Derive only the override values, with shallow equality — re-renders only
-  // when an override actually changes, not on every node/edge mutation.
   const overrides = useCanvasStore(
     useShallow((s): Partial<Record<CropHandle, number>> => {
       const out: Partial<Record<CropHandle, number>> = {}
@@ -133,7 +131,7 @@ function CropImageNodeComponent({ id, data }: Props) {
         <SliderField label="Height %"     value={data.hPct} onChange={(v) => update('hPct', v)} handleId="input-h-number" overrideValue={overrides['input-h-number']} />
 
         {typeof outputData?.['output-image'] === 'string' && (
-          // eslint-disable-next-line @next/next/no-img-element
+
           <img
             src={outputData['output-image'] as string}
             alt="Cropped output"

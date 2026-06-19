@@ -16,17 +16,10 @@ function getDims<T extends Record<string, unknown>>(node: Node<T>): { w: number;
 }
 
 function isLayoutable(node: Node<NodeData>): boolean {
-  // Sticky notes are decorative and don't participate in the DAG — keep them
-  // where the user dropped them rather than dragging them into a column.
+
   return node.data?.kind !== NodeKind.STICKY_NOTE
 }
 
-/**
- * Lay DAG nodes out left-to-right by topological level. Within each column,
- * nodes are stacked vertically and the column is centered around y=0 so the
- * whole graph reads as a horizontal flow. Non-DAG nodes (sticky notes) keep
- * their original positions.
- */
 export function autoArrange(
   nodes: Node<NodeData>[],
   edges: Edge[],

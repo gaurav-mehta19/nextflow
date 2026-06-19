@@ -174,7 +174,6 @@ function GeminiNodeComponent({ id, data }: Props) {
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Prompt */}
         <div className="relative">
           <div className="absolute -left-3 top-3">
             <TypedHandle id="prompt" type="target" position={Position.Left} handleType={HandleType.TEXT} label="Prompt" connected={connectedHandles.prompt} />
@@ -195,7 +194,6 @@ function GeminiNodeComponent({ id, data }: Props) {
           />
         </div>
 
-        {/* System Prompt */}
         <div className="relative">
           <div className="absolute -left-3 top-3">
             <TypedHandle id="system-prompt" type="target" position={Position.Left} handleType={HandleType.TEXT} label="System Prompt" connected={connectedHandles.systemPrompt} />
@@ -267,7 +265,6 @@ function GeminiNodeComponent({ id, data }: Props) {
           onUpload={(url, name) => { update('fileUrl', url); update('fileName', name) }}
         />
 
-        {/* Settings */}
         <button
           onClick={() => setSettingsOpen((p) => !p)}
           className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors"
@@ -302,7 +299,6 @@ function GeminiNodeComponent({ id, data }: Props) {
           </div>
         )}
 
-        {/* Response section — always visible, fills after run */}
         <div className="relative pt-3 border-t border-gray-100">
           <label className="block text-xs text-gray-400 mb-1.5">Response</label>
           <div className="nowheel bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm max-h-[480px] node-scroll min-h-[64px]">

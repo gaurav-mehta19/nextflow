@@ -16,8 +16,6 @@ interface ExecutorPayload {
   inputValues: Record<string, unknown>
 }
 
-// How often (ms) to poll NodeRun rows for completion of in-flight tasks.
-// Lower = faster downstream firing latency; higher = lower DB load.
 const POLL_MS = 1000
 
 function resolveInputs(
@@ -67,7 +65,6 @@ export const workflowExecutorTask = task({
   run: async (payload: ExecutorPayload): Promise<void> => {
     const { runId, nodes, edges, inputValues } = payload
 
-    // ---- Build static graph indices ----
     const nodeById = new Map(nodes.map((n) => [n.id, n]))
     const dependencies = new Map<string, Set<string>>()
     const incomingEdges = new Map<string, Edge[]>()
@@ -80,18 +77,14 @@ export const workflowExecutorTask = task({
       incomingEdges.get(edge.target)!.push(edge)
     }
 
-    // ---- Scheduler state ----
     const nodeOutputs = new Map<string, Record<string, unknown>>()
     const completed = new Set<string>()
     const failed = new Set<string>()
     const fired = new Set<string>()
-    // Gemini's outputData persisted by the gemini task includes imageUrls,
-    // so we don't need to remember them per-node here anymore.
 
     const isExecutable = (kind: NodeKind): boolean =>
       kind === NodeKind.CROP_IMAGE || kind === NodeKind.GEMINI
 
-    // ---- 1. Pre-seed Request-Inputs (instant SUCCESS, all at once) ----
     const requestInputsNodes = nodes.filter((n) => n.data.kind === NodeKind.REQUEST_INPUTS)
     if (requestInputsNodes.length > 0) {
       const now = new Date()
@@ -119,15 +112,12 @@ export const workflowExecutorTask = task({
       await prisma.$transaction(updates)
     }
 
-    // ---- 2. Main scheduling loop ----
-    // Each iteration:
-    //   a) Find nodes whose dependencies are all completed/failed and not yet fired
-    //   b) Mark all newly-ready executable nodes RUNNING in one atomic transaction
-    //   c) Fire each executable via tasks.trigger() (no wait — true parallelism)
-    //   d) Handle Response nodes inline (no external task)
-    //   e) Poll NodeRun rows for in-flight tasks; on transition, update state
+
+
+
+
     while (true) {
-      // (a) Find newly-ready nodes
+
       const ready = nodes.filter((node) => {
         if (fired.has(node.id)) return false
         if (node.data.kind === NodeKind.STICKY_NOTE) return false
@@ -138,7 +128,6 @@ export const workflowExecutorTask = task({
         return true
       })
 
-      // Split: dep-failed nodes auto-fail; otherwise proceed
       const readyExec: Array<{ node: Node<NodeData>; resolvedInputs: Record<string, unknown> }> = []
       const readyResponse: Array<{ node: Node<NodeData>; resolvedInputs: Record<string, unknown> }> = []
       const dropDepFailed: Node<NodeData>[] = []
@@ -158,9 +147,8 @@ export const workflowExecutorTask = task({
         }
       }
 
-      // (b) Atomically flip every newly-ready executable node to RUNNING. With
-      //     a single transaction, the history poll sees them glow at the same
-      //     instant — even though their actual task starts are independent.
+
+
       if (readyExec.length > 0) {
         const now = new Date()
         await prisma.$transaction(
@@ -177,10 +165,8 @@ export const workflowExecutorTask = task({
         )
       }
 
-      // (c) Fire each ready executable. tasks.trigger() returns immediately —
-      //     no wait — so multiple in-flight tasks can run concurrently and
-      //     independently, exactly matching the assignment spec ("Gemini #2
-      //     starts as soon as Gemini #1 finishes — must not wait for Crops").
+
+
       for (const { node, resolvedInputs } of readyExec) {
         const nodeRun = await prisma.nodeRun.findFirst({
           where: { runId, nodeId: node.id },
@@ -241,7 +227,6 @@ export const workflowExecutorTask = task({
         }
       }
 
-      // (d) Handle Response nodes inline — pure data propagation, no task fire.
       for (const { node, resolvedInputs } of readyResponse) {
         const incoming = incomingEdges.get(node.id) ?? []
         const imageUrls: string[] = []
@@ -273,22 +258,20 @@ export const workflowExecutorTask = task({
         completed.add(node.id)
       }
 
-      // Mark dep-failed nodes (executable or Response) as FAILED so downstream
-      // can cascade
+
       for (const node of dropDepFailed) {
         await markFailed(runId, node.id, 'Upstream dependency failed')
         fired.add(node.id)
         failed.add(node.id)
       }
 
-      // ---- Exit conditions ----
       const accountedFor =
         nodes.filter((n) => n.data.kind !== NodeKind.STICKY_NOTE).length
       if (completed.size + failed.size >= accountedFor) break
 
       const inFlight = [...fired].filter((id) => !completed.has(id) && !failed.has(id))
       if (inFlight.length === 0) {
-        // Nothing in flight and nothing fresh this iteration → unreachable nodes
+
         const unreached = nodes.filter(
           (n) =>
             !fired.has(n.id) &&
@@ -302,7 +285,6 @@ export const workflowExecutorTask = task({
         break
       }
 
-      // (e) Poll in-flight tasks. We sleep briefly, then check NodeRun status.
       await new Promise((r) => setTimeout(r, POLL_MS))
 
       const statuses = await prisma.nodeRun.findMany({
@@ -314,8 +296,7 @@ export const workflowExecutorTask = task({
         if (s.status === 'SUCCESS') {
           const node = nodeById.get(s.nodeId)
           if (!node) continue
-          // The crop / gemini tasks now write the full output shape directly,
-          // so we just copy it into nodeOutputs as-is.
+
           nodeOutputs.set(s.nodeId, (s.outputData ?? {}) as Record<string, unknown>)
           completed.add(s.nodeId)
         } else if (s.status === 'FAILED') {
@@ -324,7 +305,6 @@ export const workflowExecutorTask = task({
       }
     }
 
-    // ---- 3. Final run status ----
     const failedCount = await prisma.nodeRun.count({ where: { runId, status: 'FAILED' } })
     const successCount = await prisma.nodeRun.count({ where: { runId, status: 'SUCCESS' } })
     const runStatus = failedCount === 0 ? 'SUCCESS' : successCount > 0 ? 'PARTIAL' : 'FAILED'

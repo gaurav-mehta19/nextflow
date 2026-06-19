@@ -20,7 +20,7 @@ export const geminiTask = task({
         finishedAt: new Date(),
         errorMsg: error instanceof Error ? error.message : String(error),
       },
-    }).catch(() => { /* NodeRun row may not exist; swallow */ })
+    }).catch(() => {  })
   },
   run: async (payload: GeminiPayload): Promise<{ response: string }> => {
     const { prompt, systemPrompt, imageUrls, model, nodeRunId } = payload
@@ -30,7 +30,6 @@ export const geminiTask = task({
       data: { status: 'RUNNING', startedAt: new Date() },
     })
 
-    // Map deprecated / not-yet-available model IDs to a working stable one
     const MODEL_ALIASES: Record<string, string> = {
       'gemini-3.1-pro': 'gemini-2.5-pro',
       'gemini-3-flash': 'gemini-2.5-flash',
@@ -74,10 +73,8 @@ export const geminiTask = task({
 
     const responseText = result.response.text()
 
-    // Persist the imageUrls Gemini consumed alongside the response so the
-    // Response node downstream can render thumbnails inline at the
-    // "(Image 1)" / "(Image 2)" references. The executor reads this shape
-    // directly from outputData — no in-flight transformation needed.
+
+
     await prisma.nodeRun.update({
       where: { id: nodeRunId },
       data: {

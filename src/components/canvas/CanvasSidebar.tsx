@@ -86,7 +86,6 @@ export function CanvasSidebar() {
         collapsed ? 'w-14' : 'w-56'
       }`}
     >
-      {/* Top: logo + collapse toggle */}
       <div
         className={`flex items-center px-3 py-3 border-b border-gray-200 ${
           collapsed ? 'justify-center' : 'justify-between'
@@ -109,7 +108,6 @@ export function CanvasSidebar() {
         </button>
       </div>
 
-      {/* Search */}
       {!collapsed && (
         <div className="px-2 pt-2 pb-1.5 border-b border-gray-100">
           <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5">
@@ -124,7 +122,6 @@ export function CanvasSidebar() {
         </div>
       )}
 
-      {/* All Tools row */}
       <div
         className={`flex items-center gap-2.5 px-3 py-2 cursor-default select-none ${
           collapsed ? 'justify-center' : ''
@@ -142,7 +139,6 @@ export function CanvasSidebar() {
         )}
       </div>
 
-      {/* Scrollable node list */}
       <div className="flex-1 overflow-y-auto">
         {search ? (
           <div className="py-1">
@@ -220,7 +216,6 @@ export function CanvasSidebar() {
         )}
       </div>
 
-      {/* Bottom: settings + user */}
       <div className="border-t border-gray-200">
         <button
           title="Settings"

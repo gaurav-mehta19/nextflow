@@ -67,7 +67,7 @@ export default function DashboardPage() {
         router.push(`/workflows/${data.workflow.id}/canvas`)
       }
     } catch {
-      // invalid file — ignore silently
+
     }
   }
 
