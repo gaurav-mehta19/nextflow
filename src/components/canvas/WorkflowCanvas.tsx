@@ -45,6 +45,7 @@ export function WorkflowCanvas({ workflowId }: WorkflowCanvasProps) {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const setIsSaving = useCanvasStore((s) => s.setIsSaving)
   const selectMode = useCanvasStore((s) => s.selectMode)
+  const loaded = useCanvasStore((s) => s.loaded)
 
   const saveWorkflow = useCallback(async () => {
     setIsSaving(true)
@@ -59,11 +60,15 @@ export function WorkflowCanvas({ workflowId }: WorkflowCanvasProps) {
     }
   }, [workflowId, nodes, edges, setIsSaving])
 
+  // Skip auto-save until the workflow has actually loaded from the API.
+  // Otherwise on remount the empty initial store can race the fetch and
+  // PATCH an empty `nodes: []` into the DB, wiping the workflow.
   useEffect(() => {
+    if (!loaded) return
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => { void saveWorkflow() }, 1500)
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
-  }, [nodes, edges, saveWorkflow])
+  }, [nodes, edges, saveWorkflow, loaded])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

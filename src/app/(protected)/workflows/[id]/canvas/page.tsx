@@ -76,7 +76,11 @@ export default function CanvasPage() {
   }, [workflowId])
 
   useEffect(() => {
-    if (runStatus === 'success') {
+    if (runStatus === 'running') {
+      // Reflect an in-progress run picked up on revisit so the Run
+      // button stays disabled until it actually finishes.
+      setRunning(true)
+    } else if (runStatus === 'success') {
       setToast('Workflow completed successfully!')
       setRunning(false)
       setTimeout(() => setToast(null), 4000)

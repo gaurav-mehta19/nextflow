@@ -28,6 +28,7 @@ interface CanvasState {
   workflowId: string | null
   workflowName: string
   isSaving: boolean
+  loaded: boolean
   selectMode: boolean
   setWorkflowId: (id: string) => void
   setWorkflowName: (name: string) => void
@@ -56,6 +57,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   workflowId: null,
   workflowName: 'New Workflow',
   isSaving: false,
+  loaded: false,
   selectMode: false,
 
   setWorkflowId: (id) => set({ workflowId: id }),
@@ -75,6 +77,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       edges: cleanEdges,
       history: [{ nodes: nodes.map((n) => ({ ...n })), edges: cleanEdges.map((e) => ({ ...e })) }],
       historyIndex: 0,
+      loaded: true,
     })
   },
 
@@ -161,5 +164,6 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       workflowId: null,
       workflowName: 'New Workflow',
       isSaving: false,
+      loaded: false,
     }),
 }))

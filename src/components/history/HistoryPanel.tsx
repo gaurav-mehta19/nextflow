@@ -24,6 +24,29 @@ export function HistoryPanel({ workflowId }: HistoryPanelProps) {
       if (res.ok) {
         const data = await res.json() as { runs: Run[] }
         setRuns(data.runs)
+
+        // Prefer a still-RUNNING run (resume tracking + glow), else
+        // fall back to the most recent completed run so the canvas
+        // shows last results (Gemini text, cropped images, etc.) on
+        // revisit instead of blank nodes.
+        const runningRun = data.runs.find((r) => r.status === 'RUNNING')
+        const seedRun = runningRun ?? data.runs[0]
+        if (seedRun?.nodeRuns) {
+          updateFromRunData(
+            seedRun.nodeRuns.map((nr) => ({
+              nodeId: nr.nodeId,
+              status: nr.status,
+              outputData: nr.outputData,
+              errorMsg: nr.errorMsg,
+              startedAt: nr.startedAt,
+              finishedAt: nr.finishedAt,
+            }))
+          )
+        }
+        if (runningRun) {
+          setActiveRun(runningRun.id)
+          setRunStatus('running')
+        }
       }
     } finally {
       setLoading(false)
