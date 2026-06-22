@@ -1,3 +1,2 @@
-export { cropImageTask } from './tasks/crop-image.task'
-export { geminiTask } from './tasks/gemini.task'
+export { nodeRunnerTask } from './tasks/node-runner.task'
 export { workflowExecutorTask } from './tasks/workflow-executor.task'
