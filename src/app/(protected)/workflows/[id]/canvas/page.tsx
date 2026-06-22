@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { ReactFlowProvider } from '@xyflow/react'
 import { WorkflowCanvas } from '../../../../../components/canvas/WorkflowCanvas'
 import { HistoryPanel } from '../../../../../components/history/HistoryPanel'
+import { RealtimeRunListener } from '../../../../../components/realtime/RealtimeRunListener'
 import { Button } from '../../../../../components/ui/Button'
 import { useCanvasStore } from '../../../../../lib/store/canvas.store'
 import { useRunStore } from '../../../../../lib/store/run.store'
@@ -29,7 +30,7 @@ export default function CanvasPage() {
 
   const { setNodes, setEdges, loadWorkflow, setWorkflowId, setWorkflowName, nodes, edges, workflowName, reset: resetCanvas } =
     useCanvasStore()
-  const { setActiveRun, setRunStatus, resetRun, runStatus } = useRunStore()
+  const { setActiveRun, setRunStatus, resetRun, runStatus, activeRunId } = useRunStore()
 
   const [historyOpen, setHistoryOpen] = useState(true)
   const [running, setRunning] = useState(false)
@@ -77,17 +78,19 @@ export default function CanvasPage() {
 
   useEffect(() => {
     if (runStatus === 'running') {
-
       setRunning(true)
-    } else if (runStatus === 'success') {
-      setToast('Workflow completed successfully!')
-      setRunning(false)
-      setTimeout(() => setToast(null), 4000)
-    } else if (runStatus === 'failed') {
-      setToast('Workflow failed. Check history for details.')
-      setRunning(false)
-      setTimeout(() => setToast(null), 4000)
+      return
     }
+    if (runStatus !== 'success' && runStatus !== 'failed') return
+
+    setRunning(false)
+    setToast(
+      runStatus === 'success'
+        ? 'Workflow completed successfully!'
+        : 'Workflow failed. Check history for details.',
+    )
+    const toastTimer = setTimeout(() => setToast(null), 4000)
+    return () => clearTimeout(toastTimer)
   }, [runStatus])
 
   const handleNameSave = useCallback(async () => {
@@ -249,6 +252,10 @@ export default function CanvasPage() {
           </button>
         </div>
       </header>
+
+      {activeRunId && (
+        <RealtimeRunListener workflowId={workflowId} dbRunId={activeRunId} />
+      )}
 
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 relative">
