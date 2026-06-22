@@ -7,6 +7,7 @@ import type { Node, Edge } from '@xyflow/react'
 import type { NodeData } from '../../../../../lib/types/nodes'
 import { RunScope } from '@/generated/prisma/client'
 import { workflowExecutorTask } from '../../../../../trigger/tasks/workflow-executor.task'
+import { runTag, workflowTag } from '../../../../../lib/trigger/tags'
 
 interface RouteParams {
   params: { id: string }
@@ -51,13 +52,18 @@ export async function POST(request: Request, { params }: RouteParams) {
       })),
     })
 
-    await workflowExecutorTask.trigger({
-      runId: run.id,
-      workflowId: params.id,
-      nodes,
-      edges,
-      inputValues: input.inputValues as Record<string, unknown>,
-    })
+    await workflowExecutorTask.trigger(
+      {
+        runId: run.id,
+        workflowId: params.id,
+        nodes,
+        edges,
+        inputValues: input.inputValues as Record<string, unknown>,
+      },
+      {
+        tags: [workflowTag(params.id), runTag(run.id)],
+      },
+    )
 
     return NextResponse.json({ runId: run.id }, { status: 201 })
   } catch (err) {

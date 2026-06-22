@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { History, RefreshCw } from 'lucide-react'
+import { useRealtimeRunsWithTag } from '@trigger.dev/react-hooks'
 import { RunRow } from './RunRow'
-import type { Run } from '../../lib/types/workflow'
+import type { Run, NodeRunStatus } from '../../lib/types/workflow'
 import { useRunStore } from '../../lib/store/run.store'
+import { useRealtimeToken } from '../realtime/useRealtimeToken'
+import { workflowTag } from '../../lib/trigger/tags'
+import { mergeRealtimeIntoRuns, type RealtimeRunSnapshot } from './merge-realtime'
 
 interface HistoryPanelProps {
   workflowId: string
@@ -12,90 +16,69 @@ interface HistoryPanelProps {
 
 export function HistoryPanel({ workflowId }: HistoryPanelProps) {
   const [runs, setRuns] = useState<Run[]>([])
-  const [loading, setLoading] = useState(true)
-  const activeRunId = useRunStore((s) => s.activeRunId)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const updateFromRunData = useRunStore((s) => s.updateFromRunData)
   const setRunStatus = useRunStore((s) => s.setRunStatus)
   const setActiveRun = useRunStore((s) => s.setActiveRun)
+  const activeRunId = useRunStore((s) => s.activeRunId)
+  const { token } = useRealtimeToken(workflowId)
 
-  const fetchRuns = async () => {
+  const { runs: realtimeRuns } = useRealtimeRunsWithTag(workflowTag(workflowId), {
+    accessToken: token ?? undefined,
+    enabled: !!token,
+  }) as { runs: RealtimeRunSnapshot[] }
+
+  const fetchRuns = async (opts?: { initial?: boolean }) => {
+    const { initial = false } = opts ?? {}
+    if (initial) setInitialLoading(true)
+    else setRefreshing(true)
     try {
       const res = await fetch(`/api/workflows/${workflowId}/runs`)
-      if (res.ok) {
-        const data = await res.json() as { runs: Run[] }
-        setRuns(data.runs)
-
-        const runningRun = data.runs.find((r) => r.status === 'RUNNING')
-        const seedRun = runningRun ?? data.runs[0]
-        if (seedRun?.nodeRuns) {
-          updateFromRunData(
-            seedRun.nodeRuns.map((nr) => ({
-              nodeId: nr.nodeId,
-              status: nr.status,
-              outputData: nr.outputData,
-              errorMsg: nr.errorMsg,
-              startedAt: nr.startedAt,
-              finishedAt: nr.finishedAt,
-            }))
-          )
-        }
-        if (runningRun) {
-          setActiveRun(runningRun.id)
-          setRunStatus('running')
-        }
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    if (!activeRunId) return
-
-    let cancelled = false
-    let interval: ReturnType<typeof setInterval> | null = null
-
-    const poll = async () => {
-      const res = await fetch(`/api/workflows/${workflowId}/runs`)
-      if (!res.ok || cancelled) return
-      const data = await res.json() as { runs: Run[] }
+      if (!res.ok) return
+      const data = (await res.json()) as { runs: Run[] }
       setRuns(data.runs)
 
-      const active = data.runs.find((r) => r.id === activeRunId)
-      if (!active) return
-
-      if (active.nodeRuns) {
+      const runningRun = data.runs.find((r) => r.status === 'RUNNING')
+      const seedRun = runningRun ?? data.runs[0]
+      if (seedRun?.nodeRuns) {
         updateFromRunData(
-          active.nodeRuns.map((nr) => ({
+          seedRun.nodeRuns.map((nr) => ({
             nodeId: nr.nodeId,
-            status: nr.status,
+            status: nr.status as NodeRunStatus,
             outputData: nr.outputData,
             errorMsg: nr.errorMsg,
             startedAt: nr.startedAt,
             finishedAt: nr.finishedAt,
-          }))
+          })),
         )
       }
-
-      if (active.status !== 'RUNNING') {
-        setRunStatus(active.status === 'SUCCESS' ? 'success' : 'failed')
-        if (interval) clearInterval(interval)
-        setActiveRun(null)
+      if (runningRun) {
+        setActiveRun(runningRun.id)
+        setRunStatus('running')
       }
+    } finally {
+      if (initial) setInitialLoading(false)
+      else setRefreshing(false)
     }
-
-    void poll()
-    interval = setInterval(() => { void poll() }, 2000)
-    return () => {
-      cancelled = true
-      if (interval) clearInterval(interval)
-    }
-  }, [activeRunId, workflowId, updateFromRunData, setRunStatus, setActiveRun])
+  }
 
   useEffect(() => {
-    void fetchRuns()
+    void fetchRuns({ initial: true })
 
   }, [workflowId])
+
+
+  useEffect(() => {
+    if (activeRunId) void fetchRuns()
+
+  }, [activeRunId])
+
+
+  useEffect(() => {
+    if (!realtimeRuns || realtimeRuns.length === 0) return
+    setRuns((prev) => mergeRealtimeIntoRuns(prev, realtimeRuns))
+  }, [realtimeRuns])
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -106,14 +89,14 @@ export function HistoryPanel({ workflowId }: HistoryPanelProps) {
         </div>
         <button
           onClick={() => { void fetchRuns() }}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
+          className={`text-gray-400 hover:text-gray-600 transition-colors ${refreshing ? 'animate-spin' : ''}`}
         >
           <RefreshCw size={13} />
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {loading ? (
+        {initialLoading ? (
           <div className="flex items-center justify-center py-8">
             <span className="text-xs text-gray-400">Loading…</span>
           </div>
