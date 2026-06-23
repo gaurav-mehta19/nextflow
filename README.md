@@ -415,7 +415,7 @@ nextflow/
     │   └── layout.tsx                       — root (ClerkProvider + NextFlowAttribution)
     │
     ├── components/
-    │   ├── sidebar/Sidebar.tsx
+    │   ├── sidebar/                         — Sidebar + SidebarHeader + SidebarFooter
     │   ├── canvas/
     │   │   ├── nodes/                       — RequestInputs / CropImage / Gemini / Response / StickyNote
     │   │   ├── edges/AnimatedEdge.tsx
@@ -440,11 +440,12 @@ nextflow/
     ├── lib/
     │   ├── dag/                             — topological-sort + auto-arrange
     │   ├── db/client.ts
+    │   ├── hooks/useRunWorkflow.ts          — Run + scope-expansion BFS
     │   ├── store/                           — Zustand (canvas / run / sidebar)
     │   ├── trigger/                         — pure helpers used by Trigger.dev tasks
     │   │   ├── tags.ts                      — workflowTag / runTag / nodeTag / kindTag
     │   │   ├── db-hooks.ts                  — NodeRun + Run Prisma writers
-    │   │   ├── metadata-keys.ts             — metaSetRunning / Success / Failed
+    │   │   ├── metadata-keys.ts             — writeNodeRunning / Success / Failed (set + flush)
     │   │   └── handlers/
     │   │       ├── types.ts
     │   │       ├── input-resolver.ts        — directUpstreamIds, hasNoExecutableUpstream
