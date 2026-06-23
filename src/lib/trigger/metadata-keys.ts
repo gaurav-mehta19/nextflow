@@ -43,3 +43,28 @@ export function metaSetFailed(nodeId: string, errorMsg: string): void {
     errorMsg,
   })
 }
+
+export async function withFlush<T>(fn: () => T | Promise<T>): Promise<T> {
+  const result = await fn()
+  await metadata.flush()
+  return result
+}
+
+export async function writeNodeRunning(nodeId: string): Promise<void> {
+  metaSetRunning(nodeId)
+  await metadata.flush()
+}
+
+export async function writeNodeSuccess(
+  nodeId: string,
+  startedAt: string,
+  outputData: Record<string, unknown>,
+): Promise<void> {
+  metaSetSuccess(nodeId, startedAt, outputData)
+  await metadata.flush()
+}
+
+export async function writeNodeFailed(nodeId: string, errorMsg: string): Promise<void> {
+  metaSetFailed(nodeId, errorMsg)
+  await metadata.flush()
+}

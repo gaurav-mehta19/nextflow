@@ -1,4 +1,4 @@
-import { metadata, task } from '@trigger.dev/sdk'
+import { task } from '@trigger.dev/sdk'
 import type { Edge, Node } from '@xyflow/react'
 import { NodeKind, type NodeData } from '../../lib/types/nodes'
 import {
@@ -13,7 +13,7 @@ import {
   writeRequestInputsSuccess,
   writeResponseSuccess,
 } from '../../lib/trigger/db-hooks'
-import { metaSetFailed, metaSetRunning, metaSetSuccess } from '../../lib/trigger/metadata-keys'
+import { metaSetFailed, metaSetRunning, metaSetSuccess, withFlush } from '../../lib/trigger/metadata-keys'
 import { kindTag, nodeTag } from '../../lib/trigger/tags'
 import { nodeRunnerTask, type NodeRunnerResult } from './node-runner.task'
 
@@ -31,15 +31,16 @@ async function resolveRequestInputs(
 ): Promise<void> {
   const { runId, nodes, inputValues } = payload
   const requestInputsNodes = nodes.filter((n) => n.data.kind === NodeKind.REQUEST_INPUTS)
-  for (const n of requestInputsNodes) {
-    const out = requestInputsOutput(n, inputValues)
-    outputs.set(n.id, out)
-    const startedAt = new Date().toISOString()
-    metaSetRunning(n.id)
-    await writeRequestInputsSuccess(runId, n.id, out)
-    metaSetSuccess(n.id, startedAt, out)
-  }
-  await metadata.flush()
+  await withFlush(async () => {
+    for (const n of requestInputsNodes) {
+      const out = requestInputsOutput(n, inputValues)
+      outputs.set(n.id, out)
+      const startedAt = new Date().toISOString()
+      metaSetRunning(n.id)
+      await writeRequestInputsSuccess(runId, n.id, out)
+      metaSetSuccess(n.id, startedAt, out)
+    }
+  })
 }
 
 async function executeSinks(
@@ -50,12 +51,13 @@ async function executeSinks(
   const executables = nodes.filter(isExecutable)
   if (executables.length === 0) return
 
-  for (const node of executables) {
-    if (hasNoExecutableUpstream(node, edges, nodes)) {
-      metaSetRunning(node.id)
+  await withFlush(() => {
+    for (const node of executables) {
+      if (hasNoExecutableUpstream(node, edges, nodes)) {
+        metaSetRunning(node.id)
+      }
     }
-  }
-  await metadata.flush()
+  })
 
   const sinks = executables.filter((n) => isSinkExecutable(n, edges, nodes))
   if (sinks.length === 0) return
@@ -70,18 +72,19 @@ async function executeSinks(
   }))
 
   const batch = await nodeRunnerTask.batchTriggerAndWait(items)
-  for (let i = 0; i < batch.runs.length; i++) {
-    const r = batch.runs[i]
-    const nodeId = sinks[i].id
-    if (r.ok) {
-      outputs.set(nodeId, (r.output as NodeRunnerResult).outputData)
-    } else {
-      const message = r.error instanceof Error ? r.error.message : String(r.error ?? 'unknown')
-      console.error(`[workflow-executor] sink ${nodeId} failed:`, r.error)
-      metaSetFailed(nodeId, message)
+  await withFlush(() => {
+    for (let i = 0; i < batch.runs.length; i++) {
+      const r = batch.runs[i]
+      const nodeId = sinks[i].id
+      if (r.ok) {
+        outputs.set(nodeId, (r.output as NodeRunnerResult).outputData)
+      } else {
+        const message = r.error instanceof Error ? r.error.message : String(r.error ?? 'unknown')
+        console.error(`[workflow-executor] sink ${nodeId} failed:`, r.error)
+        metaSetFailed(nodeId, message)
+      }
     }
-  }
-  await metadata.flush()
+  })
 }
 
 async function resolveResponseNodes(
@@ -124,8 +127,6 @@ export const workflowExecutorTask = task({
     await executeSinks(payload, outputs)
     await resolveResponseNodes(payload, outputs)
 
-    const status = await finalizeRun(runId)
-    await metadata.flush()
-    return { status }
+    return withFlush(async () => ({ status: await finalizeRun(runId) }))
   },
 })

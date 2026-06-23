@@ -1,4 +1,4 @@
-import { metadata, task } from '@trigger.dev/sdk'
+import { task } from '@trigger.dev/sdk'
 import type { Edge, Node } from '@xyflow/react'
 import { NodeKind, type NodeData } from '../../lib/types/nodes'
 import {
@@ -14,7 +14,7 @@ import {
   markRunning,
   markSuccess,
 } from '../../lib/trigger/db-hooks'
-import { metaSetFailed, metaSetRunning, metaSetSuccess } from '../../lib/trigger/metadata-keys'
+import { writeNodeFailed, writeNodeRunning, writeNodeSuccess } from '../../lib/trigger/metadata-keys'
 import { kindTag, nodeTag } from '../../lib/trigger/tags'
 
 interface NodeRunnerPayload {
@@ -80,8 +80,7 @@ export const nodeRunnerTask = task({
     const { runId, nodeId } = payload
     const msg = error instanceof Error ? error.message : String(error)
     await markFailedByNode(runId, nodeId, msg)
-    metaSetFailed(nodeId, msg)
-    await metadata.flush()
+    await writeNodeFailed(nodeId, msg)
   },
 
   run: async (payload: NodeRunnerPayload): Promise<NodeRunnerResult> => {
@@ -97,8 +96,7 @@ export const nodeRunnerTask = task({
 
     const startedAt = new Date().toISOString()
     await markRunning(ownRow.id, resolvedInputs)
-    metaSetRunning(nodeId)
-    await metadata.flush()
+    await writeNodeRunning(nodeId)
 
     const { outputData } = await runExecutableNode(
       { runId, nodeId, nodeRunId: ownRow.id, nodes, edges, inputValues, resolvedInputs, upstreamOutputs },
@@ -106,8 +104,7 @@ export const nodeRunnerTask = task({
     )
 
     await markSuccess(ownRow.id, outputData)
-    metaSetSuccess(nodeId, startedAt, outputData)
-    await metadata.flush()
+    await writeNodeSuccess(nodeId, startedAt, outputData)
 
     return { outputData }
   },

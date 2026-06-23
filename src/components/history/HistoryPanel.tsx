@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { History, RefreshCw } from 'lucide-react'
 import { useRealtimeRunsWithTag } from '@trigger.dev/react-hooks'
 import { RunRow } from './RunRow'
@@ -22,6 +22,7 @@ export function HistoryPanel({ workflowId }: HistoryPanelProps) {
   const setRunStatus = useRunStore((s) => s.setRunStatus)
   const setActiveRun = useRunStore((s) => s.setActiveRun)
   const activeRunId = useRunStore((s) => s.activeRunId)
+  const lastFetchedActiveRunId = useRef<string | null>(null)
   const { token } = useRealtimeToken(workflowId)
 
   const { runs: realtimeRuns } = useRealtimeRunsWithTag(workflowTag(workflowId), {
@@ -54,6 +55,7 @@ export function HistoryPanel({ workflowId }: HistoryPanelProps) {
         )
       }
       if (runningRun) {
+        lastFetchedActiveRunId.current = runningRun.id
         setActiveRun(runningRun.id)
         setRunStatus('running')
       }
@@ -70,7 +72,10 @@ export function HistoryPanel({ workflowId }: HistoryPanelProps) {
 
 
   useEffect(() => {
-    if (activeRunId) void fetchRuns()
+    if (!activeRunId) return
+    if (lastFetchedActiveRunId.current === activeRunId) return
+    lastFetchedActiveRunId.current = activeRunId
+    void fetchRuns()
 
   }, [activeRunId])
 

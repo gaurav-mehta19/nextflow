@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useCallback, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ReactFlowProvider } from '@xyflow/react'
 import { WorkflowCanvas } from '../../../../../components/canvas/WorkflowCanvas'
@@ -9,10 +9,9 @@ import { RealtimeRunListener } from '../../../../../components/realtime/Realtime
 import { Button } from '../../../../../components/ui/Button'
 import { useCanvasStore } from '../../../../../lib/store/canvas.store'
 import { useRunStore } from '../../../../../lib/store/run.store'
+import { useRunWorkflow, type RunMode } from '../../../../../lib/hooks/useRunWorkflow'
 import { buildSampleWorkflow } from '../../../../../lib/sample-workflow'
 import { ArrowLeft, Play, History, Workflow, ChevronLeft, ChevronRight, Check } from 'lucide-react'
-import { useState } from 'react'
-import { NodeKind, type NodeData } from '../../../../../lib/types/nodes'
 
 interface WorkflowResponse {
   workflow: {
@@ -30,7 +29,8 @@ export default function CanvasPage() {
 
   const { setNodes, setEdges, loadWorkflow, setWorkflowId, setWorkflowName, nodes, edges, workflowName, reset: resetCanvas } =
     useCanvasStore()
-  const { setActiveRun, setRunStatus, resetRun, runStatus, activeRunId } = useRunStore()
+  const { resetRun, runStatus, activeRunId } = useRunStore()
+  const { run } = useRunWorkflow({ workflowId, nodes, edges })
 
   const [historyOpen, setHistoryOpen] = useState(true)
   const [running, setRunning] = useState(false)
@@ -107,68 +107,16 @@ export default function CanvasPage() {
 
   const selectedCount = nodes.filter((n) => n.selected).length
 
-  const handleRun = useCallback(async (mode: 'full' | 'selected' = 'full') => {
+  const handleRun = useCallback(async (mode: RunMode = 'full') => {
     setRunning(true)
-    resetRun()
-
-    const requestInputsNode = nodes.find((n) => n.type === 'requestInputs')
-    const fields = (requestInputsNode?.data as NodeData & { fields?: Array<{ id: string; value?: string }> })?.fields ?? []
-    const collectedValues: Record<string, unknown> = {}
-    for (const field of fields) {
-      collectedValues[field.id] = field.value ?? ''
-    }
-
-    const executableNodes = nodes.filter(
-      (n) => (n.data as NodeData)?.kind !== NodeKind.STICKY_NOTE,
-    )
-    let runNodes = executableNodes
-    let runEdges = edges
-    let scope: 'full' | 'partial' | 'single' = 'full'
-
-    if (mode === 'selected') {
-      const seedIds = nodes.filter((n) => n.selected).map((n) => n.id)
-      if (seedIds.length === 0) {
-        setRunning(false)
-        return
-      }
-
-      const included = new Set<string>(seedIds)
-      let changed = true
-      while (changed) {
-        changed = false
-        for (const e of edges) {
-          if (included.has(e.target) && !included.has(e.source)) {
-            included.add(e.source)
-            changed = true
-          }
-        }
-      }
-      runNodes = executableNodes.filter((n) => included.has(n.id))
-      runEdges = edges.filter((e) => included.has(e.source) && included.has(e.target))
-      scope = seedIds.length === 1 ? 'single' : 'partial'
-    }
-
-    try {
-      const res = await fetch(`/api/workflows/${workflowId}/run`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scope, inputValues: collectedValues, nodes: runNodes, edges: runEdges }),
-      })
-
-      if (!res.ok) {
-        setToast('Failed to start run')
-        setRunning(false)
-        return
-      }
-
-      const data = await res.json() as { runId: string }
-      setActiveRun(data.runId)
-      setRunStatus('running')
-    } catch {
+    const result = await run(mode)
+    if (result === 'no-selection') {
+      setRunning(false)
+    } else if (result === 'error') {
       setToast('Failed to start run')
       setRunning(false)
     }
-  }, [workflowId, nodes, edges, resetRun, setActiveRun, setRunStatus])
+  }, [run])
 
   return (
     <div className="h-screen flex flex-col bg-white">

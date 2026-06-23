@@ -3,26 +3,14 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { UserButton, useUser, useClerk } from '@clerk/nextjs'
-import { useRouter } from 'next/navigation'
+import { useUser } from '@clerk/nextjs'
 import {
-  Plus,
-  Search,
-  MessageSquare,
-  Folder,
-  Library,
-  Workflow,
-  Boxes,
-  BookOpen,
-  Settings,
-  Gift,
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  LogOut,
+  Plus, Search, MessageSquare, Folder, Library, Workflow, Boxes, BookOpen,
   type LucideIcon,
 } from 'lucide-react'
 import { useSidebarStore } from '../../lib/store/sidebar.store'
+import { SidebarHeader } from './SidebarHeader'
+import { SidebarFooter } from './SidebarFooter'
 
 interface NavItem {
   href: string
@@ -57,10 +45,7 @@ export function Sidebar() {
     void useSidebarStore.persist.rehydrate()
   }, [])
 
-  const isActive = (href: string) => {
-    const path = href.split('?')[0]
-    return pathname === path
-  }
+  const isActive = (href: string) => pathname === href.split('?')[0]
 
   return (
     <aside
@@ -70,7 +55,7 @@ export function Sidebar() {
         collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH
       }`}
     >
-      <Header collapsed={collapsed} onToggle={toggle} />
+      <SidebarHeader collapsed={collapsed} onToggle={toggle} />
 
       <nav className="flex flex-col gap-0.5 px-2 pt-2" aria-label="Main">
         {TOP_ACTIONS.map((item) => (
@@ -84,63 +69,16 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <EmptyState collapsed={collapsed} />
+      {collapsed ? (
+        <div className="flex-1" aria-hidden />
+      ) : (
+        <div className="flex-1 flex items-center justify-center px-4">
+          <p className="text-sm text-gray-500">No tasks yet</p>
+        </div>
+      )}
 
-      <Footer collapsed={collapsed} userName={user?.fullName ?? user?.firstName ?? null} />
+      <SidebarFooter collapsed={collapsed} userName={user?.fullName ?? user?.firstName ?? null} />
     </aside>
-  )
-}
-
-interface HeaderProps {
-  collapsed: boolean
-  onToggle: () => void
-}
-
-function Header({ collapsed, onToggle }: HeaderProps) {
-  return (
-    <div
-      className={`flex items-center h-[60px] px-3 ${
-        collapsed ? 'justify-center' : 'pl-4 pr-3'
-      }`}
-    >
-      {collapsed ? <LogoMark /> : <Logo />}
-      <button
-        onClick={onToggle}
-        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        className="absolute top-5 -right-3.5 z-40 flex items-center justify-center w-7 h-7 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
-        style={{ boxShadow: '0 2px 6px rgba(15,23,42,0.08), 0 8px 24px rgba(15,23,42,0.10)' }}
-      >
-        {collapsed
-          ? <ChevronRight size={14} strokeWidth={2.25} />
-          : <ChevronLeft size={14} strokeWidth={2.25} />}
-      </button>
-    </div>
-  )
-}
-
-function LogoMark() {
-  return (
-    <Link
-      href="/dashboard"
-      aria-label="NextFlow home"
-      className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-sm"
-    >
-      <Workflow size={18} strokeWidth={2.25} />
-    </Link>
-  )
-}
-
-function Logo() {
-  return (
-    <Link href="/dashboard" className="flex items-center gap-1.5 group/logo">
-      <span className="flex items-center justify-center w-7 h-7 rounded-md bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-sm">
-        <Workflow size={16} strokeWidth={2.25} />
-      </span>
-      <span className="text-[19px] font-semibold tracking-tight text-gray-900">
-        NextFlow
-      </span>
-    </Link>
   )
 }
 
@@ -170,102 +108,5 @@ function NavLink({ item, collapsed, active }: NavLinkProps) {
         <span className="text-[15px] font-medium leading-none">{item.label}</span>
       )}
     </Link>
-  )
-}
-
-function EmptyState({ collapsed }: { collapsed: boolean }) {
-  if (collapsed) return <div className="flex-1" aria-hidden />
-  return (
-    <div className="flex-1 flex items-center justify-center px-4">
-      <p className="text-sm text-gray-500">No tasks yet</p>
-    </div>
-  )
-}
-
-interface FooterProps {
-  collapsed: boolean
-  userName: string | null
-}
-
-function Footer({ collapsed, userName }: FooterProps) {
-  const { signOut } = useClerk()
-  const router = useRouter()
-
-  const handleSignOut = async () => {
-    await signOut()
-    router.push('/sign-in')
-  }
-
-  return (
-    <div
-      className={`flex flex-col gap-2 border-t border-gray-200/70 ${
-        collapsed ? 'p-2' : 'p-3'
-      }`}
-    >
-      {collapsed ? (
-        <>
-          <button
-            type="button"
-            aria-label="Settings"
-            title="Settings"
-            className="flex items-center justify-center w-full h-10 rounded-lg text-gray-600 hover:bg-gray-200/60 hover:text-gray-900 transition-colors"
-          >
-            <Settings size={18} strokeWidth={1.75} />
-          </button>
-          <div className="flex items-center justify-center pt-1">
-            <UserButton
-              afterSignOutUrl="/sign-in"
-              appearance={{ elements: { avatarBox: 'w-8 h-8' } }}
-            />
-          </div>
-        </>
-      ) : (
-        <>
-          <button
-            type="button"
-            className="flex items-center justify-center gap-2 w-full h-10 rounded-full bg-white border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            <Settings size={16} strokeWidth={1.75} />
-            Settings
-          </button>
-          <button
-            type="button"
-            className="flex items-center justify-center gap-2 w-full h-10 rounded-full bg-indigo-500 text-sm font-semibold text-white hover:bg-indigo-600 transition-colors shadow-sm"
-          >
-            <Gift size={16} strokeWidth={2} />
-            Claim Offer
-          </button>
-          <div className="flex justify-center pt-1.5">
-            <ChevronDown size={14} className="text-gray-400" aria-hidden />
-          </div>
-          <div className="flex items-center gap-3 pt-1.5">
-            <div className="shrink-0 leading-none">
-              <UserButton
-                afterSignOutUrl="/sign-in"
-                appearance={{
-                  elements: {
-                    avatarBox: 'w-7 h-7',
-                    rootBox: 'shrink-0',
-                    userButtonTrigger: 'shrink-0',
-                  },
-                }}
-              />
-            </div>
-            <span className="flex-1 min-w-0 text-sm font-semibold text-gray-900 truncate">
-              {userName ?? 'Account'}
-            </span>
-            <button
-              type="button"
-              onClick={() => { void handleSignOut() }}
-              aria-label="Sign out"
-              title="Sign out"
-              className="shrink-0 flex items-center justify-center w-8 h-8 rounded-md text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-            >
-              <LogOut size={16} strokeWidth={1.75} />
-            </button>
-          </div>
-        </>
-      )}
-    </div>
   )
 }
