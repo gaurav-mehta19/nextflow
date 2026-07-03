@@ -32,7 +32,7 @@ export default function NotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#fafafa] px-6">
       <div className="w-full max-w-md text-center">
-        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-sm">
+        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-violet-500 shadow-sm">
           <Compass size={26} strokeWidth={2} className="text-white" />
         </div>
 
@@ -66,7 +66,7 @@ export default function NotFound() {
             aria-valuenow={Math.round(progress)}
           >
             <div
-              className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-[width] duration-1000 ease-linear"
+              className="h-full bg-gradient-to-r from-purple-500 to-violet-500 transition-[width] duration-1000 ease-linear"
               style={{ width: `${progress}%` }}
             />
           </div>

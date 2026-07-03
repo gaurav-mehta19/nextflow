@@ -9,7 +9,7 @@ interface Props {
 export function NodeStatusBadge({ status }: Props) {
   if (status === 'RUNNING') {
     return (
-      <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-indigo-500 text-white px-2 py-0.5 rounded-full animate-pulse">
+      <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-purple-500 text-white px-2 py-0.5 rounded-full animate-pulse">
         Running
       </span>
     )

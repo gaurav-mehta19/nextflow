@@ -45,7 +45,7 @@ export function SidebarFooter({ collapsed, userName }: Props) {
           </button>
           <button
             type="button"
-            className="flex items-center justify-center gap-2 w-full h-10 rounded-full bg-indigo-500 text-sm font-semibold text-white hover:bg-indigo-600 transition-colors shadow-sm"
+            className="flex items-center justify-center gap-2 w-full h-10 rounded-full bg-purple-500 text-sm font-semibold text-white hover:bg-purple-600 transition-colors shadow-sm"
           >
             <Gift size={16} strokeWidth={2} />
             Claim Offer

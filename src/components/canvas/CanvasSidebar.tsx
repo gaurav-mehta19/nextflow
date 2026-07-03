@@ -93,7 +93,7 @@ export function CanvasSidebar() {
       >
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded bg-indigo-600 flex items-center justify-center flex-shrink-0">
+            <div className="w-5 h-5 rounded bg-purple-600 flex items-center justify-center flex-shrink-0">
               <LayoutGrid size={11} className="text-white" />
             </div>
             <span className="text-xs font-semibold text-gray-700">NextFlow</span>
@@ -132,7 +132,7 @@ export function CanvasSidebar() {
         {!collapsed && (
           <>
             <span className="text-xs text-gray-600 flex-1">All Tools</span>
-            <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-semibold leading-none">
+            <span className="text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full font-semibold leading-none">
               {SIDEBAR_ITEMS.length}
             </span>
           </>
@@ -233,7 +233,7 @@ export function CanvasSidebar() {
           }`}
           title={collapsed ? displayName : undefined}
         >
-          <div className="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white">
+          <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white">
             {initials}
           </div>
           {!collapsed && (

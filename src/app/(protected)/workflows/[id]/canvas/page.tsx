@@ -132,14 +132,14 @@ export default function CanvasPage() {
         <div className="w-px h-5 bg-gray-200" />
 
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center">
             <Workflow size={13} className="text-white" />
           </div>
           {editingName ? (
             <div className="flex items-center gap-1">
               <input
                 ref={nameInputRef}
-                className="text-sm font-semibold text-gray-900 bg-gray-50 border border-indigo-400 rounded-md px-2 py-0.5 outline-none focus:bg-white"
+                className="text-sm font-semibold text-gray-900 bg-gray-50 border border-purple-400 rounded-md px-2 py-0.5 outline-none focus:bg-white"
                 value={nameInput}
                 onChange={(e) => setNameInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -154,7 +154,7 @@ export default function CanvasPage() {
             </div>
           ) : (
             <span
-              className="text-sm font-semibold text-gray-900 cursor-pointer hover:text-indigo-600 transition-colors px-1.5 py-0.5 rounded hover:bg-gray-50"
+              className="text-sm font-semibold text-gray-900 cursor-pointer hover:text-purple-600 transition-colors px-1.5 py-0.5 rounded hover:bg-gray-50"
               onDoubleClick={() => { setNameInput(workflowName); setEditingName(true) }}
               title="Double-click to rename"
             >
@@ -183,7 +183,7 @@ export default function CanvasPage() {
             loading={running}
             onClick={() => { void handleRun('full') }}
             disabled={running}
-            className="!bg-indigo-600 hover:!bg-indigo-500 shadow-[0_2px_8px_rgba(79,70,229,0.25)]"
+            className="!bg-purple-600 hover:!bg-purple-500 shadow-[0_2px_8px_rgba(147,51,234,0.25)]"
           >
             <Play size={13} strokeWidth={2.5} />
             {running ? 'Running…' : 'Run'}

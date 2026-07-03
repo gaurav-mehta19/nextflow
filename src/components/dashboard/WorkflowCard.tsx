@@ -59,14 +59,14 @@ export function WorkflowCard({
     : 'default'
 
   return (
-    <div className="group bg-white border border-gray-200 hover:border-indigo-300 hover:shadow-lg rounded-2xl overflow-hidden transition-all flex flex-col">
+    <div className="group bg-white border border-gray-200 hover:border-purple-300 hover:shadow-lg rounded-2xl overflow-hidden transition-all flex flex-col">
       <div
         onClick={open}
-        className="h-44 bg-gradient-to-br from-gray-50 to-indigo-50/30 border-b border-gray-100 cursor-pointer overflow-hidden relative group/preview"
+        className="h-44 bg-gradient-to-br from-gray-50 to-purple-50/30 border-b border-gray-100 cursor-pointer overflow-hidden relative group/preview"
       >
         <WorkflowPreview nodes={nodes} edges={edges} />
-        <div className="absolute inset-0 bg-indigo-600/0 group-hover/preview:bg-indigo-600/5 transition-colors flex items-center justify-center">
-          <div className="opacity-0 group-hover/preview:opacity-100 transition-opacity bg-white shadow-md rounded-full px-3 py-1.5 flex items-center gap-1 text-xs font-medium text-indigo-700">
+        <div className="absolute inset-0 bg-purple-600/0 group-hover/preview:bg-purple-600/5 transition-colors flex items-center justify-center">
+          <div className="opacity-0 group-hover/preview:opacity-100 transition-opacity bg-white shadow-md rounded-full px-3 py-1.5 flex items-center gap-1 text-xs font-medium text-purple-700">
             <ArrowUpRight size={14} />
             Open workflow
           </div>
@@ -85,7 +85,7 @@ export function WorkflowCard({
                   if (e.key === 'Enter') commitRename()
                   if (e.key === 'Escape') { setEditing(false); setDraftName(name) }
                 }}
-                className="flex-1 min-w-0 bg-gray-50 text-sm text-gray-800 rounded px-2 py-1 border border-indigo-400 outline-none"
+                className="flex-1 min-w-0 bg-gray-50 text-sm text-gray-800 rounded px-2 py-1 border border-purple-400 outline-none"
               />
               <button onClick={commitRename} className="text-green-500 hover:text-green-600 flex-shrink-0">
                 <Check size={15} />
@@ -113,7 +113,7 @@ export function WorkflowCard({
         <div className="flex items-center gap-1 mt-auto pt-2 border-t border-gray-100">
           <button
             onClick={open}
-            className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg px-3 py-2 transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-lg px-3 py-2 transition-colors"
           >
             <ArrowUpRight size={13} />
             Open

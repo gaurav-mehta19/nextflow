@@ -171,7 +171,7 @@ export function NodePicker({ open, onClose }: NodePickerProps) {
                 onClick={() => setActiveCategory(cat)}
                 className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
                   isActive
-                    ? 'bg-indigo-50 text-indigo-700 font-medium'
+                    ? 'bg-purple-50 text-purple-700 font-medium'
                     : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
                 }`}
               >

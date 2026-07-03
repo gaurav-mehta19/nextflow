@@ -13,7 +13,7 @@ function LogoMark() {
     <Link
       href="/dashboard"
       aria-label="NextFlow home"
-      className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-sm"
+      className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 to-violet-500 text-white shadow-sm"
     >
       <Workflow size={18} strokeWidth={2.25} />
     </Link>
@@ -23,7 +23,7 @@ function LogoMark() {
 function Logo() {
   return (
     <Link href="/dashboard" className="flex items-center gap-1.5 group/logo">
-      <span className="flex items-center justify-center w-7 h-7 rounded-md bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-sm">
+      <span className="flex items-center justify-center w-7 h-7 rounded-md bg-gradient-to-br from-purple-500 to-violet-500 text-white shadow-sm">
         <Workflow size={16} strokeWidth={2.25} />
       </span>
       <span className="text-[19px] font-semibold tracking-tight text-gray-900">

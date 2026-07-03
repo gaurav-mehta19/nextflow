@@ -107,7 +107,7 @@ function CropImageNodeComponent({ id, data }: Props) {
         </div>
         <span className="text-[11px] font-semibold text-blue-700 uppercase tracking-[0.08em]">Crop Image</span>
         {nodeStatus?.status === 'RUNNING' && (
-          <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-indigo-500 text-white px-2 py-0.5 rounded-full animate-pulse">Running</span>
+          <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-purple-500 text-white px-2 py-0.5 rounded-full animate-pulse">Running</span>
         )}
         {nodeStatus?.status === 'SUCCESS' && (
           <span className="ml-auto text-[10px] font-medium tracking-wide uppercase bg-green-500 text-white px-2 py-0.5 rounded-full">Done</span>

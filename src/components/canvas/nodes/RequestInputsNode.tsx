@@ -140,7 +140,7 @@ function RequestInputsNodeComponent({ id, data }: Props) {
 
               {field.type === 'text_field' ? (
                 <textarea
-                  className="w-full bg-gray-50 text-sm text-gray-700 rounded-lg p-2.5 resize-none border border-gray-200 focus:border-indigo-400 outline-none"
+                  className="w-full bg-gray-50 text-sm text-gray-700 rounded-lg p-2.5 resize-none border border-gray-200 focus:border-purple-400 outline-none"
                   rows={3}
                   placeholder="Enter text..."
                   value={field.value ?? ''}
